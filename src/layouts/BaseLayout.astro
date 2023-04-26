@@ -1,6 +1,5 @@
 ---
 import "@assets/styles/theme.css";
-import Footer from "@components/Footer.astro";
 import HeadCommon from "@components/HeadCommon.astro";
 import Header from "@components/Header.astro";
 import { normalizeLangTag, rtlLanguages } from "@src/i18n";
@@ -35,6 +34,5 @@ const bcpLang = normalizeLangTag(lang);
     <!-- Page Content -->
     <slot />
     <div class="h-20"></div>
-    <Footer />
   </body>
 </html>
