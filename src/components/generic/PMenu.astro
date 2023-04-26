@@ -1,0 +1,124 @@
+---
+import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
+
+const xmlns = 'xmlns="http://www.w3.org/1999/xhtml"';
+const id = (Math.random() + 1).toString(36).substring(2);
+
+const menuHeading = await Astro.slots.render("menu-heading");
+const button = new DOMParser().parseFromString(menuHeading, "text/html").documentElement;
+if (button.tagName !== "button" && button.getAttribute("role") !== "button")
+  throw new Error("Menu heading is not a Button!");
+
+const menuContent = await Astro.slots.render("menu-content");
+const div = new DOMParser().parseFromString(menuContent, "text/html").documentElement;
+if (div.tagName !== "div" || div.getAttribute("role") !== "menu")
+  throw new Error("Menu content is not a Div tag or role is not a Dialog!");
+
+let className = "cursor-pointer";
+button.setAttribute("class", `${className} ${button.getAttribute("class") ?? ""}`);
+button.setAttribute("aria-controls", id);
+button.setAttribute("aria-haspopup", "menu");
+button.setAttribute("aria-expanded", String(false));
+const menuHeadingHtml = new XMLSerializer().serializeToString(button).replace(xmlns, "");
+
+className = "p-1 m-1 border rounded-md !absolute !opacity-0 !invisible open:!opacity-100 open:!visible";
+div.setAttribute("class", `${className} ${div.getAttribute("class") ?? ""}`);
+div.setAttribute("id", id);
+div.setAttribute("aria-modal", String(false));
+div.removeAttribute("open");
+const menuContentHtml = new XMLSerializer().serializeToString(div).replace(xmlns, "");
+---
+
+<span id={`${id}-menu`} class="relative !z-50 !whitespace-nowrap" data-p-menu>
+  <Fragment set:html={menuHeadingHtml} />
+  <Fragment set:html={menuContentHtml} />
+</span>
+<div
+  id={`${id}-mask`}
+  class:list={[
+    "bg-black/50 !opacity-0 !inset-0 !z-[49] !fixed !invisible transition-[visibility]",
+    "open:!opacity-100 open:!visible open:transition-opacity",
+  ]}
+  aria-hidden="true"
+>
+</div>
+
+<script>
+  import { setModalAsClosed, setModalAsOpen } from "@src/modal";
+
+  let expandedMenuItem: Element | null = null;
+
+  // Elements Update
+  const updateMenuElement = function updateMenuElement(menuItem: Element): void {
+    const newState = menuItem.hasAttribute("open");
+
+    newState ? setModalAsOpen(menuItem) : setModalAsClosed();
+
+    const button = menuItem.firstElementChild;
+    if (button) button.setAttribute("aria-expanded", String(newState));
+
+    const menuContent = button?.nextElementSibling;
+    if (menuContent) {
+      menuContent.setAttribute("aria-modal", String(newState));
+      menuContent.toggleAttribute("open", newState);
+    }
+
+    const menuMask = document.getElementById(menuItem.id.replace("-menu", "-mask"));
+    if (menuMask) menuMask.toggleAttribute("open", newState);
+
+    newState
+      ? setTimeout(() => document.addEventListener("mousedown", onClickMenuDocument, { passive: true }), 100)
+      : document.removeEventListener("mousedown", onClickMenuDocument);
+    expandedMenuItem = newState ? menuItem : null;
+  };
+
+  // Model Update
+  const toggleMenuState = function toggleMenuState(menuItem: Element | null): void {
+    if (!menuItem) return;
+
+    const newState = !menuItem.hasAttribute("open");
+
+    menuItem.toggleAttribute("open", newState);
+  };
+
+  // Observers
+  const onMutation = function onMutation(mutationList: MutationRecord[]): void {
+    const mutationRecord = mutationList[0];
+    if (!mutationRecord) return;
+
+    const menuItem = mutationRecord.target as Element;
+    updateMenuElement(menuItem);
+  };
+
+  // Events
+  const onClickMenuDocument = function onClickMenuDocument(event: Event): void {
+    if (!event.currentTarget || !expandedMenuItem) return;
+
+    const element = event.target as Element;
+    if (expandedMenuItem.contains(element)) return;
+
+    toggleMenuState(expandedMenuItem);
+  };
+
+  const onMenuButtonClick = function onMenuButtonClick(event: Event): void {
+    if (!event.currentTarget) return;
+
+    const button = event.currentTarget as Element;
+    expandedMenuItem && expandedMenuItem !== button.parentElement
+      ? toggleMenuState(expandedMenuItem)
+      : toggleMenuState(button.parentElement);
+  };
+
+  // Init
+  const observer = new MutationObserver(onMutation);
+  const menuList = document.querySelectorAll("[data-p-menu]");
+  menuList.forEach((menuItem): void => {
+    observer.observe(menuItem, {
+      attributes: true,
+      attributeFilter: ["open"],
+    });
+
+    const button = menuItem.firstElementChild;
+    button?.addEventListener("click", onMenuButtonClick, { passive: true });
+  });
+</script>

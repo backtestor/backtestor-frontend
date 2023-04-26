@@ -1,0 +1,121 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true,
+    "astro/astro": true
+  },
+  "extends": [
+    "eslint:all",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:@typescript-eslint/strict",
+    "plugin:astro/jsx-a11y-strict",
+    "plugin:astro/all"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": ["./tsconfig.json"],
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "extraFileExtensions": [".md"]
+  },
+  "plugins": ["@typescript-eslint", "astro", "jsx-a11y"],
+  "ignorePatterns": ["*/node_modules/*", "**/*.md"],
+  "reportUnusedDisableDirectives": true,
+  "overrides": [
+    {
+      "files": ["*.astro"],
+      "parser": "astro-eslint-parser",
+      "parserOptions": {
+        "parser": "@typescript-eslint/parser",
+        "extraFileExtensions": [".astro"]
+      }
+    },
+    {
+      "files": ["**/*.astro/*.js", "*.astro/*.js"],
+      "parserOptions": {
+        "sourceType": "module"
+      }
+    }
+  ],
+  "rules": {
+    // eslint
+    "array-element-newline": ["error", "consistent"],
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "always-multiline",
+        "imports": "always-multiline",
+        "objects": "always-multiline"
+      }
+    ],
+    "curly": ["error", "multi"],
+    "dot-location": ["error", "property"],
+    "function-call-argument-newline": ["error", "consistent"],
+    "function-paren-newline": ["error", "multiline-arguments"],
+    "id-length": "off",
+    "indent": "off",
+    "lines-around-comment": "off",
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "tabWidth": 2,
+        "ignoreUrls": true,
+        "ignoreTemplateLiterals": true
+      }
+    ],
+    "max-lines": "off",
+    "max-params": "off",
+    "max-statements": "off",
+    "multiline-ternary": ["error", "always-multiline"],
+    "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 3 }],
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-extra-parens": [
+      "error",
+      "all",
+      {
+        "enforceForArrowConditionals": false,
+        "enforceForFunctionPrototypeMethods": false,
+        "ignoreJSX": "all",
+        "nestedBinaryExpressions": false,
+        "returnAssign": false
+      }
+    ],
+    "no-magic-numbers": "off",
+    "no-ternary": "off",
+    "no-undef": "off",
+    "no-undefined": "off",
+    "nonblock-statement-body-position": ["error", "any"],
+    "object-curly-spacing": ["error", "always"],
+    "object-property-newline": ["error", { "allowAllPropertiesOnSameLine": true }],
+    "one-var": "off",
+    "padded-blocks": ["error", { "blocks": "never", "switches": "never", "classes": "never" }],
+    "quote-props": ["error", "as-needed"],
+    "quotes": ["error", "double", { "avoidEscape": true }],
+    "sort-imports": "off",
+    "sort-keys": "off",
+    "space-before-function-paren": ["error", "never"],
+    "spaced-comment": ["error", "always", { "markers": ["/"] }],
+
+    // plugin:@typescript-eslint
+    "@typescript-eslint/no-dynamic-delete": "off",
+    // Throws an error in Output window. Try to enable after the package update.
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_"
+      }
+    ],
+
+    // plugin:astro
+    "astro/no-set-html-directive": "off",
+    "astro/jsx-a11y/prefer-tag-over-role": "off"
+  }
+}

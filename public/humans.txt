@@ -1,0 +1,12 @@
+/* TEAM */
+Trade lovers: backtestor team
+Site: https://github.com/backtestor/
+From: Ireland
+
+/* THANKS */
+
+/* SITE */
+Frameworks: Astro, PWA
+Programming languages: JavaScript, Go, SQL
+Software: VS Code
+Language: English

@@ -1,0 +1,15 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { changeLanguage, t } from "i18next";
+
+await changeLanguage("en");
+
+const title = t("pages.index.title");
+const description = t("pages.index.description");
+---
+
+<BaseLayout title={title} description={description}>
+  <header class="flex flex-col justify-center items-center">
+    <h1>{t("pages.index.header")}</h1>
+  </header>
+</BaseLayout>;

@@ -1,0 +1,5 @@
+Canonical: https://www.backtestor.com/.well-known/security.txt
+Expires: 2023-12-31T23:59:59+00:00
+Policy: https://github.com/backtestor/backtestor-frontend/security/policy
+Contact: https://github.com/backtestor/backtestor-frontend/security/policy
+Preferred-Languages: en

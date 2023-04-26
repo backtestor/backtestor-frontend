@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /.well-known/
+Sitemap: https://www.backtestor.com/sitemap-index.xml
+Host: www.backtestor.com

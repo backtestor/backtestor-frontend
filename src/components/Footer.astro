@@ -1,0 +1,82 @@
+---
+import PMenu from "@components/generic/PMenu.astro";
+import PSvg from "@components/generic/PSvg.astro";
+import { addTrailingSlash } from "@src/i18n";
+import { localizePath } from "astro-i18next";
+import { getCollection } from "astro:content";
+import i18next, { t } from "i18next";
+
+const { language } = i18next;
+const pathname = addTrailingSlash(Astro.url.pathname.replace(`/${language}`, ""));
+const siteEntries = await getCollection("site");
+---
+
+<!-- Footer -->
+<footer>
+  <nav class="bg-color-bg-subtle flex inset-x-0 bottom-0 fixed" aria-label={t("components.footer.navigation-target")}>
+    <ul class="flex flex-grow justify-around">
+      <!-- Drive -->
+      <li>
+        <a
+          class:list={[
+            "flex flex-col w-24 items-center",
+            "hover:text-color-text-accent hover:border-color-border-accent hover:border-t-2 hover:underline",
+            "focus:text-color-text-accent focus:border-color-border-accent focus:border-t-2 focus:underline",
+            { "text-color-text-accent border-color-border-accent border-t-2": pathname === "/" },
+          ]}
+          href={addTrailingSlash(localizePath("/"))}
+        >
+          <PSvg name="drive" svgClass="h-10" />
+          <span>{t("components.footer.drive")}</span>
+        </a>
+      </li>
+      <!-- More Menu -->
+      <li>
+        <PMenu>
+          <button
+            slot="menu-heading"
+            type="button"
+            id="more-menu"
+            class:list={[
+              "rounded-none flex flex-col w-24 items-center",
+              "hover:text-color-text-accent hover:border-color-border-accent hover:border-t-2 hover:underline",
+              "focus:text-color-text-accent focus:border-color-border-accent focus:border-t-2 focus:underline",
+            ]}
+            tabindex="0"
+            aria-label={t("components.footer.more-menu")}
+          >
+            <PSvg name="menu" svgClass="h-10" />
+            <span>{t("components.footer.more-menu")}</span>
+          </button>
+          <div
+            slot="menu-content"
+            role="menu"
+            class="bg-color-bg border-color-border bottom-20 ltr:right-0 rtl:left-0"
+            aria-labelledby="more-menu"
+          >
+            <ul>
+              {
+                siteEntries.map((entry) => (
+                  <Fragment>
+                    <li
+                      role="presentation"
+                      class:list={[
+                        "py-2 px-4",
+                        "focus:bg-color-bg-subtle focus:underline",
+                        "hover:bg-color-bg-subtle hover:underline",
+                      ]}
+                    >
+                      <a role="menuitem" href={addTrailingSlash(localizePath(`/${entry.slug}`, language))}>
+                        <span>{entry.data.header}</span>
+                      </a>
+                    </li>
+                  </Fragment>
+                ))
+              }
+            </ul>
+          </div>
+        </PMenu>
+      </li>
+    </ul>
+  </nav>
+</footer>

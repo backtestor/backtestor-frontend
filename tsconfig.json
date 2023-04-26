@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.astro",
+    "astro-i18next.config.ts",
+    "astro.config.ts",
+    "d.ts",
+    "tailwind.config.cjs"
+  ],
+  "exclude": ["./dist", "./node_modules"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["src/*"],
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@i18n/*": ["src/i18n/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@pages/*": ["src/pages/*"]
+    },
+    "types": ["astro/client"],
+    "allowJs": true,
+    "checkJs": true,
+
+    // https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/base.json
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "ESNext",
+
+    // https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strict.json
+    "strict": true,
+
+    // https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strictest.json
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // Custom project options
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "noImplicitAny": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "plugins": [
+      {
+        "name": "typescript-eslint-language-service"
+      }
+    ],
+    "pretty": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true
+  }
+}

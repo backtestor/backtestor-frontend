@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color: #373737;
+  --color-subtle: #525252;
+  --color-accent: #00568b;
+  --color-bg: #fcfcfc;
+  --color-bg-subtle: #f3f3f3;
+  --color-bg-accent: #eaeaea;
+  --color-border: #1f1f1f;
+  --color-border-subtle: #dde1e3;
+
+  --color-light: #fcfcfc;
+  --color-dark: #000000;
+  --color-primary-dark: #004fc2;
+  --color-primary-light: #24c2f6;
+  --color-secondary-dark: #575757;
+  --color-secondary-light: #b4b4b4;
+  --color-positive-dark: #006535;
+  --color-positive-light: #00d100;
+  --color-negative-dark: #b20000;
+  --color-negative-light: #ff6047;
+  --color-warning-dark: #784f06;
+  --color-warning-light: #f2f200;
+}
+.dark {
+  --color: #d8d8d8;
+  --color-subtle: #c0c0c0;
+  --color-accent: #3ed0f9;
+  --color-bg: #1a1a1a;
+  --color-bg-subtle: #272727;
+  --color-bg-accent: #323232;
+  --color-border: #4a4a4a;
+  --color-border-subtle: #3c3c3c;
+}
+
+@layer base {
+  h1 {
+    @apply text-3xl mb-6;
+  }
+  h2 {
+    @apply text-2xl mb-4;
+  }
+  h3 {
+    @apply text-xl mb-2;
+  }
+  h4 {
+    @apply text-lg mb-2;
+  }
+  p {
+    @apply mb-4;
+  }
+  button {
+    @apply inline-flex justify-center items-center select-none rounded-md py-1 px-4 ltr:ml-2 rtl:mr-2;
+  }
+}
