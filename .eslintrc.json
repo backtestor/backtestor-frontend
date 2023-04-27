@@ -104,6 +104,7 @@
 
     // plugin:@typescript-eslint
     "@typescript-eslint/no-dynamic-delete": "off",
+    "@typescript-eslint/no-floating-promises": "off",
     // Throws an error in Output window. Try to enable after the package update.
     "@typescript-eslint/no-unsafe-assignment": "off",
     "@typescript-eslint/no-unused-vars": [

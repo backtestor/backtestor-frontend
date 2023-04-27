@@ -3,7 +3,7 @@ import MarkdownLayout from "@layouts/MarkdownLayout.astro";
 import { CollectionEntry, getCollection } from "astro:content";
 import { changeLanguage } from "i18next";
 
-await changeLanguage("en");
+changeLanguage("en");
 
 export interface Props {
   entry: CollectionEntry<"site">;
