@@ -16,6 +16,9 @@
     },
     "language-selector": {
       "language-menu": "Language Options"
+    },
+    "auth": {
+      "sign-in": "Sign In"
     }
   },
   "layouts": {

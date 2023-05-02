@@ -21,7 +21,8 @@
       "@components/*": ["src/components/*"],
       "@i18n/*": ["src/i18n/*"],
       "@layouts/*": ["src/layouts/*"],
-      "@pages/*": ["src/pages/*"]
+      "@pages/*": ["src/pages/*"],
+      "@stores/*": ["src/stores/*"]
     },
     "types": ["astro/client"],
     "allowJs": true,

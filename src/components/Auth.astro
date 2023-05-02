@@ -1,0 +1,54 @@
+---
+import { t } from "i18next";
+---
+
+<!-- Auth Component -->
+<button class="btn btn-primary">{t("components.auth.sign-in")}</button>
+
+<script>
+  import { AppStore, appStore } from "@stores/appStore";
+
+  const loggedIn = checkLoggedIn();
+  const headerComponent = "headerComponent";
+
+  function checkLoggedIn() {
+    const token = appStore.value.jwtToken;
+    return token !== null;
+  }
+
+  // Elements Update
+  const updateLoginElements = function updateSpeedLimitElements(): void {
+    const speedUnits = appStore.value.jwtToken;
+
+    speedLimitSelectorText2.innerHTML = speedUnits;
+  };
+
+  // View Update
+  const initView = function initView(): void {
+    speedUnitsSelector.setAttribute("data-p-radio-group", appStore.value.jwtToken);
+  };
+
+  const updateLoginView = function updateLoginView(newKey: string): void {
+    speedUnitsSelector.setAttribute("data-p-radio-group", newKey);
+  };
+
+  // Events
+  const onChangeAppStore = function onChangeAppStore(
+    key: keyof AppStore,
+    value: AppStore[keyof AppStore] | undefined,
+    source?: string,
+  ): void {
+    if (source === headerComponent || typeof value === "undefined") return;
+
+    if (key === "jwtToken") {
+      const newValue = value.toString();
+      updateLoginView(newValue);
+    }
+  };
+
+  // Init
+  initView();
+  updateLoginElements();
+
+  appStore.listen(onChangeAppStore);
+</script>
