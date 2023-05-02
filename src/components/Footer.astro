@@ -13,16 +13,16 @@ const siteEntries = await getCollection("site");
 
 <!-- Footer -->
 <footer>
-  <nav class="bg-color-bg-subtle flex inset-x-0 bottom-0 fixed" aria-label={t("components.footer.navigation-target")}>
+  <nav class="flex inset-x-0 bottom-0 fixed" aria-label={t("components.footer.navigation-target")}>
     <ul class="flex flex-grow justify-around">
       <!-- Drive -->
       <li>
         <a
           class:list={[
             "flex flex-col w-24 items-center",
-            "hover:text-color-text-accent hover:border-color-border-accent hover:border-t-2 hover:underline",
-            "focus:text-color-text-accent focus:border-color-border-accent focus:border-t-2 focus:underline",
-            { "text-color-text-accent border-color-border-accent border-t-2": pathname === "/" },
+            "hover:border-t-2 hover:underline",
+            "focus:border-t-2 focus:underline",
+            { "border-t-2": pathname === "/" },
           ]}
           href={addTrailingSlash(localizePath("/"))}
         >
@@ -39,8 +39,8 @@ const siteEntries = await getCollection("site");
             id="more-menu"
             class:list={[
               "rounded-none flex flex-col w-24 items-center",
-              "hover:text-color-text-accent hover:border-color-border-accent hover:border-t-2 hover:underline",
-              "focus:text-color-text-accent focus:border-color-border-accent focus:border-t-2 focus:underline",
+              "hover:border-t-2 hover:underline",
+              "focus:border-t-2 focus:underline",
             ]}
             tabindex="0"
             aria-label={t("components.footer.more-menu")}
@@ -51,7 +51,7 @@ const siteEntries = await getCollection("site");
           <div
             slot="menu-content"
             role="menu"
-            class="bg-color-bg border-color-border bottom-20 ltr:right-0 rtl:left-0"
+            class="bottom-20 ltr:right-0 rtl:left-0"
             aria-labelledby="more-menu"
           >
             <ul>
@@ -62,8 +62,8 @@ const siteEntries = await getCollection("site");
                       role="presentation"
                       class:list={[
                         "py-2 px-4",
-                        "focus:bg-color-bg-subtle focus:underline",
-                        "hover:bg-color-bg-subtle hover:underline",
+                        "focus:underline",
+                        "hover:underline",
                       ]}
                     >
                       <a role="menuitem" href={addTrailingSlash(localizePath(`/${entry.slug}`, language))}>
