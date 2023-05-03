@@ -1,9 +1,19 @@
 ---
+import PSvg from "@components/generic/PSvg.astro";
 import { t } from "i18next";
 ---
 
 <!-- Auth Component -->
 <button class="btn btn-primary" type="button">{t("components.auth.sign-in")}</button>
+<span class="tooltip tooltip-bottom before:text-xs before:content-[attr(data-tip)]" data-tip="Profile">
+  <button class="dropdown dropdown-end btn btn-ghost" type="button">
+    <PSvg name="profile" svgClass="h-10" />
+    <ul class="dropdown-content menu p-2 bg-base-100 w-52">
+      <li>Item 1</li>
+      <li>Item 2</li>
+    </ul>
+  </button>
+</span>
 
 <script>
   import { AppStore, appStore } from "@stores/appStore";
