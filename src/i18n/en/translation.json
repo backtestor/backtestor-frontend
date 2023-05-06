@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Make smarter investment decisions with our stock backtesting tool.",
+    "title": "Make smarter decisions with our backtesting tool.",
     "title-short": "Backtestor",
     "description": "Backtestor is designed with 💖, meaning that it was created with care and attention to detail by developers who are passionate about what they do."
   },
@@ -27,7 +27,7 @@
   "pages": {
     "index": {
       "title": "Backtestor",
-      "description": "Make smarter investment decisions with our stock backtesting tool.",
+      "description": "Make smarter decisions with our backtesting tool.",
       "header": "???"
     },
     "404": {

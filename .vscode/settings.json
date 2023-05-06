@@ -26,6 +26,16 @@
     "editor.defaultFormatter": "DotJoshJohnson.xml"
   },
 
+  "editor.tabCompletion": "on",
+  "editor.suggestFontSize": 11,
+  "editor.suggestLineHeight": 16,
+  "editor.suggestSelection": "first",
+  "editor.suggest.showIcons": true,
+  "editor.suggest.showStatusBar": true,
+  "editor.suggest.shareSuggestSelections": true,
+  "editor.suggest.preview": true,
+  "editor.suggest.localityBonus": true,
+
   "editor.inlayHints.fontSize": 11,
   "editor.inlayHints.padding": true,
   "editor.inlayHints.enabled": "on",
