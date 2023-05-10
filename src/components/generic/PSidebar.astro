@@ -11,11 +11,11 @@ const { id, side, className }: Props = Astro.props;
 <div
   id={id}
   class:list={[
-    "hidden border !fixed top-0 !max-h-screen h-screen max-w-[80vw] !min-w-[10vw] z-[1000]",
-    "!opacity-0 !invisible open:!flex open:!opacity-100 open:!visible",
+    "hidden border fixed top-0 max-h-screen h-screen max-w-[80vw] min-w-[10vw] z-[1000]",
+    "opacity-0 invisible open:flex open:opacity-100 open:visible",
     {
-      "!left-0 rounded-r-md": side === "left",
-      "!right-0  rounded-l-md": side === "right",
+      "left-0 rounded-r-md": side === "left",
+      "right-0  rounded-l-md": side === "right",
     },
     className,
   ]}
@@ -26,15 +26,15 @@ const { id, side, className }: Props = Astro.props;
 <div
   id={`${id}-mask`}
   class:list={[
-    "bg-black/50 !opacity-0 !inset-0 !z-[999] !fixed !invisible transition-[visibility]",
-    "open:!opacity-100 open:!visible open:transition-opacity",
+    "bg-black/50 opacity-0 inset-0 z-[999] fixed invisible transition-[visibility]",
+    "open:opacity-100 open:visible open:transition-opacity",
   ]}
   aria-hidden="true"
 >
 </div>
 
 <script>
-  import { setModalAsClosed,setModalAsOpen } from "@src/modal";
+  import { setModalAsClosed, setModalAsOpen } from "@src/modal";
 
   let expandedSidebar: Element | null = null;
 

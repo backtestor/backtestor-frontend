@@ -1,7 +1,6 @@
 {
-  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
   "short_name": "Backtestor",
-  "name": "Make smarter decisions with our backtesting tool.",
+  "name": "Backtesting tool.",
   "description": "Backtestor is designed with 💖, meaning that it was created with care and attention to detail by developers who are passionate about what they do.",
   "categories": ["trading"],
   "lang": "en",
@@ -179,14 +178,10 @@
   "id": "/",
   "scope": "/",
   "start_url": "/",
-  "display_override": ["minimal-ui"],
   "display": "standalone",
   "theme_color": "#FFFFFF",
   "background_color": "#000000",
   "orientation": "any",
-  "launch_handler": {
-    "client_mode": ["focus-existing", "auto"]
-  },
   "shortcuts": [
     {
       "short_name": "Screener",
@@ -194,8 +189,8 @@
       "description": "Use the Screener to scan and filter instruments based on market cap, dividend yield, volume to find top gainers, most volatile stocks and their all-time highs.",
       "url": "/",
       "icons": [
-        { "src": "/images/svg/drive-98x98.png", "sizes": "98x98", "purpose": "maskable" },
-        { "src": "/images/svg/drive-98x98.png", "sizes": "98x98", "purpose": "any" }
+        { "src": "/images/icons/filter-list-98x98.png", "sizes": "98x98", "purpose": "maskable" },
+        { "src": "/images/icons/filter-list-98x98.png", "sizes": "98x98", "purpose": "any" }
       ]
     }
   ],
@@ -204,12 +199,6 @@
       "src": "/screenshots/screenshot-01.jpg",
       "sizes": "1080x2041",
       "type": "image/jpg"
-    }
-  ],
-  "protocol_handlers": [
-    {
-      "protocol": "web+screen",
-      "url": "./?type=%s"
     }
   ]
 }

@@ -1,0 +1,13 @@
+{
+  "extends": ["stylelint-config-recommended", "stylelint-config-standard", "stylelint-high-performance-animation"],
+  "defaultSeverity": "error",
+  "rules": {
+    "at-rule-no-unknown": [true, { "ignoreAtRules": ["tailwind"] }],
+    "declaration-no-important": true,
+    "function-no-unknown": [true, { "ignoreFunctions": ["theme"] }],
+    "function-url-no-scheme-relative": true,
+    "no-unknown-animations": true,
+    "no-unknown-custom-properties": true,
+    "selector-anb-no-unmatchable": true
+  }
+}

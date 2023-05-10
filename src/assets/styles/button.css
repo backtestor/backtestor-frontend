@@ -1,0 +1,15 @@
+@layer components {
+  /* default btn */
+  .btn {
+    @apply inline-flex h-10 shrink-0 cursor-pointer select-none flex-wrap items-center justify-center rounded border-transparent px-4 ltr:ml-2 rtl:mr-2;
+  }
+
+  /* shapes */
+  .btn-square {
+    @apply h-10 w-10 p-0;
+  }
+
+  .btn-circle {
+    @apply h-10 w-10 rounded-full p-0;
+  }
+}

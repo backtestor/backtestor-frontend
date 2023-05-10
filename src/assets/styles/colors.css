@@ -1,0 +1,35 @@
+@layer base {
+  :root {
+    color: theme(colors.content);
+    background-color: theme(colors.base);
+
+    --base: 0deg 0% 98.8%; /* #fcfcfc rgb(252, 252, 252) */
+    --base-subtle: 0deg 0% 95.3%; /* #f3f3f3 rgb(243, 243, 243) */
+    --content: 0deg 0% 21.6%; /* #373737 rgb(55, 55, 55) */
+    --content-subtle: 0deg 0% 32.2%; /* #525252 rgb(82, 82, 82) */
+    --neutral: 219deg 14.1% 27.8%; /* #3d4451 rgb(61, 68, 81) */
+    --neutral-focus: 219deg 14.1% 22.24%; /* darken(div 1.25) */
+    --neutral-content: 0deg 0% 100%; /* #ffffff rgb(255, 255, 255) */
+    --color-content: 0deg 0% 98.8%; /* #fcfcfc rgb(252, 252, 252) */
+    --color-primary: 216deg 100% 38%; /* #004fc2 rgb(0, 79, 194) */
+    --color-primary-focus: 216deg 100% 30.4%; /* darken(div 1.25) */
+    --color-secondary: 0deg 0% 34.1%; /* #575757 rgb(87, 87, 87) */
+    --color-secondary-focus: 0deg 0% 27.28%; /* darken(div 1.25) */
+    --color-positive: 151deg 100% 19.8%; /* #006535 rgb(0, 101, 53) */
+    --color-positive-focus: 151deg 100% 15.84%; /* darken(div 1.25) */
+    --color-negative: 0deg 100% 34.9%; /* #b20000 rgb(178, 0, 0) */
+    --color-negative-focus: 0deg 100% 27.92%; /* darken(div 1.25) */
+    --color-warning: 38deg 90.5% 24.7%; /* #784f06 rgb(120, 79, 6) */
+    --color-warning-focus: 38deg 90.5% 19.76%; /* darken(div 1.25) */
+  }
+
+  .dark {
+    --base: 0deg 0% 10.2%; /* #1a1a1a rgb(26, 26, 26) */
+    --base-subtle: 0deg 0% 15.3%; /* #272727 rgb(39, 39, 39) */
+    --content: 0deg 0% 84.7%; /* #d8d8d8 rgb(216, 216, 216) */
+    --content-subtle: 0deg 0% 75.3%; /* #c0c0c0 rgb(192, 192, 192) */
+    --neutral: 0deg 0% 15.3%; /* #191d24 rgb(25, 29, 36) */
+    --neutral-focus: 0deg 0% 12.24%; /* darken(div 1.25) */
+    --neutral-content: 220deg 13.4% 69.2%; /* #a6adbb rgb(166, 173, 187) */
+  }
+}

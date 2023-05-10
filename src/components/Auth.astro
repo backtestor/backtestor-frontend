@@ -1,19 +1,35 @@
 ---
+import PMenu from "@components/generic/PMenu.astro";
 import PSvg from "@components/generic/PSvg.astro";
 import { t } from "i18next";
 ---
 
 <!-- Auth Component -->
-<button class="btn btn-primary" type="button">{t("components.auth.sign-in")}</button>
-<div class="dropdown dropdown-end">
-  <button class="btn btn-ghost btn-square" type="button" title="Profile">
+<button class="btn btn-outline" type="button">{t("components.auth.sign-in")}</button>
+<PMenu>
+  <button
+    slot="menu-heading"
+    type="button"
+    id="profile-menu"
+    class="btn btn-ghost btn-square"
+    tabindex="0"
+    title="Profile"
+    aria-label="Profile"
+  >
     <PSvg name="profile" svgClass="h-10" />
   </button>
-  <ul tabindex="0" class="dropdown-content menu bg-base-200 w-52">
-    <li><a>Item 1</a></li>
-    <li><a>Item 2</a></li>
-  </ul>
-</div>
+  <div
+    slot="menu-content"
+    role="menu"
+    class="dropdown-content menu bg-base-200 ltr:right-0 rtl:left-0"
+    aria-labelledby="profile-menu"
+  >
+    <ul>
+      <li><a role="menuitem" href="/">Item 1</a></li>
+      <li><a role="menuitem" href="/">Item 2</a></li>
+    </ul>
+  </div>
+</PMenu>
 
 <script>
   import { AppStore, appStore } from "@stores/appStore";

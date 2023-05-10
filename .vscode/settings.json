@@ -15,7 +15,9 @@
     "source.fixAll": true,
     "source.organizeImports": true
   },
+
   "prettier.documentSelectors": ["**/*.astro"],
+
   "[astro]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -26,7 +28,11 @@
     "editor.defaultFormatter": "DotJoshJohnson.xml"
   },
 
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
   "editor.tabCompletion": "on",
+  "editor.codeLensFontSize": 11,
   "editor.suggestFontSize": 11,
   "editor.suggestLineHeight": 16,
   "editor.suggestSelection": "first",
@@ -69,15 +75,14 @@
   "typescript.implementationsCodeLens.enabled": true,
   "typescript.referencesCodeLens.enabled": true,
   "typescript.referencesCodeLens.showOnAllFunctions": true,
-  "editor.codeLensFontSize": 11,
-  "editor.quickSuggestions": {
-    "strings": "on"
-  },
+
   "tailwindCSS.includeLanguages": {
     "astro": "html"
   },
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "tailwindCSS.classAttributes": ["class", "class:list", "className", "svgClass", "uncheckedClass", "checkedClass"]
+  "tailwindCSS.classAttributes": ["class", "class:list", "className", "svgClass", "uncheckedClass", "checkedClass"],
+  "stylelint.configFile": "./.stylelintrc",
+  "stylelint.validate": ["css", "less", "postcss", "tailwindcss"]
 }

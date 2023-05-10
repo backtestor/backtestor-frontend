@@ -1,0 +1,33 @@
+/* Base */
+@import url("colors.css");
+@import url("preflight.css");
+
+/* Components */
+@import url("button.css");
+@import url("button-style.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1 {
+    @apply mb-6 text-3xl;
+  }
+
+  h2 {
+    @apply mb-4 text-2xl;
+  }
+
+  h3 {
+    @apply mb-2 text-xl;
+  }
+
+  h4 {
+    @apply mb-2 text-lg;
+  }
+
+  p {
+    @apply mb-4;
+  }
+}

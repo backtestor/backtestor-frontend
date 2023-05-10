@@ -1,0 +1,32 @@
+@layer components {
+  /* default btn */
+  .btn {
+    @apply border border-neutral bg-neutral text-neutral-content;
+  }
+
+  .btn:hover {
+    @apply border-neutral-focus bg-neutral-focus;
+  }
+
+  /* brand colors */
+
+  /* state colors */
+
+  /* btn variants */
+  .btn-ghost {
+    @apply border border-transparent bg-transparent text-current;
+  }
+
+  .btn-ghost:hover {
+    @apply border-opacity-0 bg-content/20;
+  }
+
+  /* outline */
+  .btn-outline {
+    @apply border-current bg-transparent text-content;
+  }
+
+  .btn-outline:hover {
+    @apply border-content bg-content-subtle text-base;
+  }
+}

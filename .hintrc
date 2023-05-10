@@ -1,8 +1,7 @@
 {
-  "extends": [
-    "development"
-  ],
+  "browserslist": ["> 0.5%", "last 2 versions", "Firefox ESR", "not dead"],
+  "extends": ["development"],
   "hints": {
-    "manifest-is-valid": "off"
+    "detect-css-reflows/layout": "hint"
   }
 }

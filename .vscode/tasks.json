@@ -35,6 +35,12 @@
       "type": "npm",
       "script": "preview",
       "problemMatcher": []
+    },
+    {
+      "label": "Format with Prettier",
+      "type": "shell",
+      "command": "npx prettier --write '${file}'",
+      "problemMatcher": []
     }
   ]
 }

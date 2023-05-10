@@ -105,6 +105,7 @@
     // plugin:@typescript-eslint
     "@typescript-eslint/no-dynamic-delete": "off",
     "@typescript-eslint/no-floating-promises": "off",
+    "@typescript-eslint/no-namespace": ["error", { "allowDeclarations": true }],
     // Throws an error in Output window. Try to enable after the package update.
     "@typescript-eslint/no-unsafe-assignment": "off",
     "@typescript-eslint/no-unused-vars": [
@@ -114,6 +115,7 @@
         "destructuredArrayIgnorePattern": "^_"
       }
     ],
+    "@typescript-eslint/triple-slash-reference": ["error", { "path": "always", "types": "never", "lib": "never" }],
 
     // plugin:astro
     "astro/no-set-html-directive": "off",

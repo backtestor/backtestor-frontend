@@ -7,21 +7,19 @@ import Auth from "./Auth.astro";
 ---
 
 <!-- Header -->
-<div class="sticky flex h-8 w-full justify-center">
-  <nav class="navbar w-full">
-    <div class="flex flex-1">
-      <a class="btn btn-ghost btn-square" href={addTrailingSlash(localizePath("/"))} title="Home Page">
-        <PSvg name="bt" svgClass="h-10" />
-      </a>
-      <div class="flex items-center gap-2">
-        <a href={addTrailingSlash(localizePath("/"))}><span>{t("app.title-short")}</span></a>
-      </div>
+<nav class="flex h-10 w-full justify-between">
+  <div class="flex flex-1">
+    <a class="btn btn-ghost btn-square" href={addTrailingSlash(localizePath("/"))} title="Home Page">
+      <PSvg name="bt" svgClass="h-10" />
+    </a>
+    <div class="flex items-center gap-2">
+      <a href={addTrailingSlash(localizePath("/"))}><span>{t("app.title-short")}</span></a>
     </div>
-    <div class="flex">
-      <Auth />
-    </div>
-  </nav>
-</div>
+  </div>
+  <div class="flex flex-none">
+    <Auth />
+  </div>
+</nav>
 
 <script>
   import { AppStore, appStore } from "@stores/appStore";
