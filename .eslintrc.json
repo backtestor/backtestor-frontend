@@ -65,8 +65,10 @@
       {
         "code": 120,
         "tabWidth": 2,
-        "ignoreUrls": true,
-        "ignoreTemplateLiterals": true
+        "ignoreComments": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreUrls": true
       }
     ],
     "max-lines": "off",

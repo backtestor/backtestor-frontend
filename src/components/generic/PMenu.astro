@@ -29,16 +29,13 @@ div.removeAttribute("open");
 const menuContentHtml = new XMLSerializer().serializeToString(div).replace(xmlns, "");
 ---
 
-<span id={`${id}-menu`} class="relative z-50 !whitespace-nowrap" data-p-menu>
+<span id={`${id}-menu`} class="relative z-50 whitespace-nowrap" data-p-menu>
   <Fragment set:html={menuHeadingHtml} />
   <Fragment set:html={menuContentHtml} />
 </span>
 <div
   id={`${id}-mask`}
-  class:list={[
-    "bg-black/50 opacity-0 inset-0 z-[49] fixed invisible transition-[visibility]",
-    "open:opacity-100 open:visible open:transition-opacity",
-  ]}
+  class="invisible fixed inset-0 z-[49] bg-black/50 opacity-0 transition-[visibility] open:visible open:opacity-100 open:transition-opacity"
   aria-hidden="true"
 >
 </div>
