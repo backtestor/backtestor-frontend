@@ -1,6 +1,7 @@
 export interface MapStore<T extends Record<string, unknown>> {
   value: T;
   setKey(key: keyof T, value: T[keyof T] | undefined, source?: string): void;
+  deleteKey(key: keyof T, source?: string): void;
   listen(listener: (key: keyof T, value: T[keyof T] | undefined, source?: string) => void): void;
 }
 
@@ -44,19 +45,26 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
     });
   }
 
+  deleteKey(key: keyof T, source?: string): void {
+    if (typeof key === "number" || typeof key === "symbol") return;
+
+    const storageKey = this.getStorageKey(key);
+
+    if (key in this.value) {
+      this.value = { ...this.value };
+      delete this.value[key];
+      localStorage.removeItem(storageKey);
+      this.notify(key, source);
+    }
+  }
+
   setKey(key: keyof T, value: T[keyof T] | undefined, source?: string): void {
     if (typeof key === "number" || typeof key === "symbol") return;
 
     const storageKey = this.getStorageKey(key);
 
-    if (typeof value === "undefined") {
-      if (key in this.value) {
-        this.value = { ...this.value };
-        delete this.value[key];
-        localStorage.removeItem(storageKey);
-        this.notify(key, source);
-      }
-    } else {
+    if (typeof value === "undefined") this.deleteKey(key, source);
+    else {
       this.value = {
         ...this.value,
         [key]: value,

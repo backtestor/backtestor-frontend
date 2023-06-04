@@ -75,8 +75,7 @@
     "max-params": "off",
     "max-statements": "off",
     "multiline-ternary": ["error", "always-multiline"],
-    "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 3 }],
-    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 4 }],
     "no-extra-parens": [
       "error",
       "all",

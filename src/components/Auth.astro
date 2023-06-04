@@ -5,13 +5,13 @@ import { t } from "i18next";
 ---
 
 <!-- Auth Component -->
-<button class="btn btn-outline" type="button">{t("components.auth.sign-in")}</button>
+<button class="btn btn-outline" id="sign-in-button" type="button">{t("components.auth.sign-in")}</button>
 <PMenu>
   <button
     slot="menu-heading"
     type="button"
     id="profile-menu"
-    class="btn btn-ghost btn-square"
+    class="btn btn-ghost btn-square hidden"
     tabindex="0"
     title="Profile"
     aria-label="Profile"
@@ -27,33 +27,45 @@ import { t } from "i18next";
 </PMenu>
 
 <script>
-  import { AppStore, appStore } from "@stores/appStore";
+  import { AppStore, appStore } from "@services/stores/appStore";
+  import { defineMsaAuth, msaAuthOptions } from "@src/services/auth/msaAuth";
+  import { RedirectRequest } from "@src/services/auth/request";
 
-  const loggedIn = checkLoggedIn();
   const headerComponent = "headerComponent";
+  const signInButton = document.getElementById("sign-in-button") as HTMLElement;
 
-  function checkLoggedIn() {
-    const token = appStore.value.jwtToken;
-    return token !== null;
-  }
+  // Functions
+  const signInMsa = function signIn(): void {
+    const options = msaAuthOptions;
+    const auth = defineMsaAuth(options);
+
+    const request: RedirectRequest = {
+      scopes: import.meta.env.PUBLIC_MSA_SCOPES.split(" "),
+    };
+    auth.loginRedirect(request);
+  };
 
   // Elements Update
-  const updateLoginElements = function updateSpeedLimitElements(): void {
-    const speedUnits = appStore.value.jwtToken;
-
-    speedLimitSelectorText2.innerHTML = speedUnits;
+  const updateAuthElements = function updateSpeedLimitElements(): void {
+    // Intended.
   };
 
   // View Update
-  const initView = function initView(): void {
-    speedUnitsSelector.setAttribute("data-p-radio-group", appStore.value.jwtToken);
-  };
+  const initView = function initView(): void {};
 
   const updateLoginView = function updateLoginView(newKey: string): void {
-    speedUnitsSelector.setAttribute("data-p-radio-group", newKey);
+    console.log(`updateLoginView: ${newKey}`);
   };
 
+  // State Update
+
   // Events
+  const onClickSignIn = function onClickSignIn(event: Event): void {
+    if (!event.currentTarget) return;
+
+    signInMsa();
+  };
+
   const onChangeAppStore = function onChangeAppStore(
     key: keyof AppStore,
     value: AppStore[keyof AppStore] | undefined,
@@ -69,7 +81,19 @@ import { t } from "i18next";
 
   // Init
   initView();
-  updateLoginElements();
+  updateAuthElements();
+
+  signInButton.addEventListener("click", onClickSignIn, { passive: true });
 
   appStore.listen(onChangeAppStore);
+
+  console.log(`Mode: ${import.meta.env.MODE}`);
+  console.log(`Production: ${import.meta.env.PROD}`);
+  console.log(`Development: ${import.meta.env.DEV}`);
+  console.log(`Base URL: ${import.meta.env.BASE_URL}`);
+  console.log(`Site: ${import.meta.env.SITE}`);
+  console.log(`ClientId: ${import.meta.env.PUBLIC_MSA_CLIENT_ID}`);
+  console.log(`Authority: ${import.meta.env.PUBLIC_MSA_AUTHORITY}`);
+  console.log(`RedirectUri: ${import.meta.env.PUBLIC_MSA_REDIRECT_URI}`);
+  console.log(`PostLogoutRedirectUri: ${import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI}`);
 </script>
