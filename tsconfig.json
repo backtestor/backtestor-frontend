@@ -37,7 +37,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "target": "ESNext",
+    "target": "ES2017",
 
     // https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/strict.json
     "strict": true,
