@@ -24,28 +24,20 @@ import Auth from "./Auth.astro";
 <script>
   import { AppStore, appStore } from "@services/stores/appStore";
 
-  const loggedIn = checkLoggedIn();
   const headerComponent = "headerComponent";
-
-  function checkLoggedIn() {
-    const token = appStore.value.jwtToken;
-    return token !== null;
-  }
 
   // Elements Update
   const updateLoginElements = function updateSpeedLimitElements(): void {
-    const speedUnits = appStore.value.jwtToken;
-
-    speedLimitSelectorText2.innerHTML = speedUnits;
+    // Intended to be empty
   };
 
   // View Update
   const initView = function initView(): void {
-    speedUnitsSelector.setAttribute("data-p-radio-group", appStore.value.jwtToken);
+    // Intended to be empty
   };
 
-  const updateLoginView = function updateLoginView(newKey: string): void {
-    speedUnitsSelector.setAttribute("data-p-radio-group", newKey);
+  const updateLoginView = function updateLoginView(_newKey: string): void {
+    // Intended to be empty
   };
 
   // Events

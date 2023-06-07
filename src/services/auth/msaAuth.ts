@@ -1,39 +1,8 @@
-import { generateGuid } from "@src/utils/uuid";
-import { Auth, AuthOptions, BaseAuth, EventType } from "./auth";
-import { InteractionType } from "./browser";
-import { RedirectRequest } from "./request";
-
-class MsaAuth extends BaseAuth {
-  async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-    request.redirectStartPage ||= window.location.href;
-    request.correlationId ||= generateGuid();
-    this.logger.verbose("acquireTokenRedirect called", request.correlationId);
-    this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-    this.setInteractionInProgress(true);
-
-    // If logged in, emit acquire token events
-    const isLoggedIn = this.getAllAccounts().length > 0;
-    if (isLoggedIn) this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Redirect, request);
-    else this.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
-
-    const result: Promise<void> = this.acquireToken(request);
-
-    return result.catch((e): never => {
-      // If logged in, emit acquire token events
-      if (isLoggedIn) this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
-      else this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
-
-      throw e;
-    });
-  }
-
-  loginRedirect(request: RedirectRequest): void {
-    request.redirectStartPage ||= window.location.href;
-    request.correlationId ||= generateGuid();
-    this.logger.verbose("loginRedirect called", request.correlationId);
-    this.acquireTokenRedirect(request);
-  }
-}
+import { Auth, AuthOptions, BaseAuth } from "./auth";
+import { authStore } from "./authStore";
+import { GrantType, ResponseMode, ResponseType } from "./constants";
+import { AuthCodeRequest } from "./request";
+import { AuthCodeResponse } from "./response";
 
 export const msaAuthOptions: AuthOptions = {
   clientId: import.meta.env.PUBLIC_MSA_CLIENT_ID,
@@ -44,6 +13,52 @@ export const msaAuthOptions: AuthOptions = {
   tokenEndpoint: import.meta.env.PUBLIC_MSA_TOKEN_ENDPOINT,
   endSessionEndpoint: import.meta.env.PUBLIC_MSA_END_SESSION_ENDPOINT,
 };
+
+class MsaAuth extends BaseAuth {
+  override getAuthCodeUrl(request: AuthCodeRequest): string {
+    this.logger.trace("getAuthCodeUrl called", request.correlationId);
+    const parameters: Map<string, string> = new Map<string, string>();
+
+    parameters.set("client_id", encodeURIComponent(this.clientId));
+    parameters.set("response_type", encodeURIComponent(request.responseType ?? ResponseType.CODE));
+    parameters.set("redirect_uri", encodeURIComponent(this.redirectUri));
+    parameters.set("scope", encodeURIComponent(request.scope.join(" ")));
+    parameters.set("response_mode", encodeURIComponent(request.responseMode ?? ResponseMode.QUERY));
+
+    if (request.stateObject) parameters.set("state", encodeURIComponent(request.stateObject.encodedState ?? ""));
+
+    if (request.pkceCodes) {
+      parameters.set("code_challenge", encodeURIComponent(request.pkceCodes.codeChallenge ?? ""));
+      parameters.set("code_challenge_method", encodeURIComponent(request.pkceCodes.codeChallengeMethod ?? ""));
+    }
+
+    const queryString: string = Array.from(parameters.entries())
+      .map(([key, value]: [string, string]): string => `${key}=${value}`)
+      .join("&");
+
+    const authCodeUrl = `${this.authorizationEndpoint}?${queryString}`;
+
+    return authCodeUrl;
+  }
+
+  getTokenQueryString(authCodeResponse: AuthCodeResponse): string {
+    this.logger.trace("getTokenQueryString called", authCodeResponse.correlationId ?? "");
+    const parameters: Map<string, string> = new Map<string, string>();
+
+    parameters.set("client_id", encodeURIComponent(this.clientId));
+    parameters.set("scope", encodeURIComponent(authStore.value.scope.join(" ")));
+    parameters.set("code", encodeURIComponent(authCodeResponse.code ?? ""));
+    parameters.set("redirect_uri", encodeURIComponent(this.redirectUri));
+    parameters.set("grant_type", encodeURIComponent(GrantType.AUTHORIZATION_CODE));
+    parameters.set("code_verifier", encodeURIComponent(authStore.value.pkceCodes.codeVerifier ?? ""));
+
+    const queryString: string = Array.from(parameters.entries())
+      .map(([key, value]: [string, string]): string => `${key}=${value}`)
+      .join("&");
+
+    return queryString;
+  }
+}
 
 export const defineMsaAuth = function defineMsaAuth(options: AuthOptions): Auth {
   const auth = new MsaAuth(options);

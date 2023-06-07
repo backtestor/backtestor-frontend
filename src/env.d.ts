@@ -1,6 +1,7 @@
 /// <reference path="../.astro/types.d.ts" />
 
 interface ImportMetaEnv {
+  readonly PUBLIC_LOG_LEVEL: string;
   readonly PUBLIC_MSA_CLIENT_ID: string;
   readonly PUBLIC_MSA_AUTHORITY: string;
   readonly PUBLIC_MSA_REDIRECT_URI: string;
@@ -8,7 +9,6 @@ interface ImportMetaEnv {
   readonly PUBLIC_MSA_AUTHORIZATION_ENDPOINT: string;
   readonly PUBLIC_MSA_TOKEN_ENDPOINT: string;
   readonly PUBLIC_MSA_END_SESSION_ENDPOINT: string;
-  readonly PUBLIC_MSA_SCOPES: string;
 }
 
 interface ImportMeta {

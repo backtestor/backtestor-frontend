@@ -1,35 +1,12 @@
-import { Logger, defineNullLogger } from "@services/logger";
-import { PkceCodesResult, generatePkceCodes } from "@src/utils/crypto2";
-import { setRequestState } from "@utils/oauth";
+import { Logger, defineNullLogger } from "@services/logger/logger";
+import { encode } from "@utils/base64";
 import { generateGuid } from "@utils/uuid";
-import { AccountEntity, AccountInfo, getAccountInfo } from "./account";
 import { authStore } from "./authStore";
-import {
-  InteractionType,
-  IsBrowserEnvironment,
-  blockAcquireTokenInPopups,
-  blockNonBrowserEnvironment,
-  blockRedirectInIframe,
-  blockReloadInHiddenIframes,
-} from "./browser";
-import { AuthenticationScheme, RedirectRequest, ResponseMode } from "./request";
-
-export const EventType = {
-  LOGIN_START: "auth:loginStart",
-  LOGIN_SUCCESS: "auth:loginSuccess",
-  LOGIN_FAILURE: "auth:loginFailure",
-  ACQUIRE_TOKEN_START: "auth:acquireTokenStart",
-  ACQUIRE_TOKEN_SUCCESS: "auth:acquireTokenSuccess",
-  ACQUIRE_TOKEN_FAILURE: "auth:acquireTokenFailure",
-  ACQUIRE_TOKEN_NETWORK_START: "auth:acquireTokenFromNetworkStart",
-  LOGOUT_START: "auth:logoutStart",
-  LOGOUT_SUCCESS: "auth:logoutSuccess",
-  LOGOUT_FAILURE: "auth:logoutFailure",
-  LOGOUT_END: "auth:logoutEnd",
-  RESTORE_FROM_BFCACHE: "auth:restoreFromBFCache",
-} as const;
-
-export type EventType = (typeof EventType)[keyof typeof EventType];
+import { preflightBrowserEnvironmentCheck } from "./browser";
+import { ContentType, HeaderName, InteractionType, OIDC_DEFAULT_SCOPES, ResponseMode, ResponseType } from "./constants";
+import { generatePkceCodes } from "./pkce";
+import { AuthCodeRequest, PkceCodes, StateObject } from "./request";
+import { AuthCodeResponse, BaseResponse, TokenResponse } from "./response";
 
 export interface AuthOptions {
   logger?: Logger;
@@ -43,8 +20,71 @@ export interface AuthOptions {
 }
 
 export interface Auth {
-  loginRedirect(request: RedirectRequest): void;
+  getAuthCode(request: AuthCodeRequest): void;
+  handleAuthCodeResponse(): Promise<BaseResponse>;
 }
+
+const getCurrentUTCTimestamp = (): string => {
+  const now = new Date();
+  // Format: "YYYY-MM-DD HH:MM:SS"
+  const [utcString] = now.toISOString().replace("T", " ").split(".");
+  return utcString ?? "";
+};
+
+const setState = function setState(
+  correlationId: string,
+  interactionType: InteractionType,
+  meta?: Record<string, string>,
+): StateObject {
+  const stateObject: StateObject = {
+    correlationId,
+    interactionType,
+  };
+
+  if (interactionType === InteractionType.REDIRECT) stateObject.redirectStartPage = window.location.href;
+  if (meta) stateObject.meta = meta;
+
+  const stateString: string = JSON.stringify(stateObject);
+  stateObject.encodedState = encode(stateString);
+
+  return stateObject;
+};
+
+const initializeAuthCodeRequest = function initializeAuthCodeRequest(
+  request: AuthCodeRequest,
+  interactionType: InteractionType,
+): AuthCodeRequest {
+  const stateObject: StateObject = setState(request.correlationId ?? generateGuid(), interactionType);
+
+  const scopeSet = new Set([...request.scope, ...OIDC_DEFAULT_SCOPES]);
+  const scopeArray: string[] = Array.from(scopeSet);
+
+  const initializedAuthCodeRequest: AuthCodeRequest = {
+    ...request,
+    scope: scopeArray,
+    responseType: ResponseType.CODE,
+    responseMode: ResponseMode.QUERY,
+    stateObject,
+    nonce: request.nonce ?? generateGuid(),
+  };
+
+  return initializedAuthCodeRequest;
+};
+
+const generatePkceParams = async function generatePkceParams(request: AuthCodeRequest): Promise<AuthCodeRequest> {
+  const pkceCodes: PkceCodes = await generatePkceCodes();
+  const authCodeRequest: AuthCodeRequest = {
+    ...request,
+    pkceCodes,
+  };
+
+  return authCodeRequest;
+};
+
+const decodeParamValue = function decodeParamValue(searchParams: URLSearchParams, paramName: string): string | null {
+  const encodedValue: string | null = searchParams.get(paramName);
+  return encodedValue === null ? null : decodeURIComponent(encodedValue);
+};
 
 export abstract class BaseAuth implements Auth {
   logger: Logger;
@@ -74,195 +114,210 @@ export abstract class BaseAuth implements Auth {
     this.endSessionEndpoint = options.endSessionEndpoint;
   }
 
-  abstract loginRedirect(request: RedirectRequest): void;
+  abstract getAuthCodeUrl(request: AuthCodeRequest): string;
 
-  protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
-    this.logger.verbose("preflightBrowserEnvironmentCheck started");
+  abstract getTokenQueryString(authCodeResponse: AuthCodeResponse): string;
 
-    // Block request if not in browser environment
-    blockNonBrowserEnvironment();
+  getAuthCode(request: AuthCodeRequest): void {
+    request.correlationId ??= generateGuid();
+    this.logger.verbose("getAuthCode called", request.correlationId);
 
-    // Block redirects if in an iframe
-    blockRedirectInIframe(interactionType);
-
-    // Block auth requests inside a hidden iframe
-    blockReloadInHiddenIframes();
-
-    // Block redirectUri opened in a popup from calling MSAL APIs
-    blockAcquireTokenInPopups();
+    this.acquireToken(request);
   }
 
-  protected setInteractionInProgress(inProgress: boolean): void {
-    this.logger.verbose("setInteractionInProgress started");
+  async acquireToken(request: AuthCodeRequest): Promise<void> {
+    this.logger.trace("acquireToken called", request.correlationId);
 
-    const { interactionStatus } = authStore.value;
+    preflightBrowserEnvironmentCheck(InteractionType.REDIRECT);
 
-    // Set interaction in progress or throw if already set.
-    if (inProgress)
-      if (interactionStatus && interactionStatus.length > 0)
-        // Interaction is in progress. Block request.
-        throw new Error("Interaction already in progress for another client");
-      else authStore.setKey("interactionStatus", this.clientId);
-    else if (interactionStatus === this.clientId) authStore.deleteKey("interactionStatus");
-  }
-
-  protected getAllAccounts(): AccountInfo[] {
-    this.logger.verbose("getAllAccounts called");
-
-    if (!IsBrowserEnvironment) return [];
-
-    const { accountKeys } = authStore.value;
-    if (!accountKeys || accountKeys.length < 1) return [];
-
-    const accountEntities: AccountEntity[] = accountKeys.reduce(
-      (accounts: AccountEntity[], key: string): AccountEntity[] => {
-        const entity: AccountEntity | null = this.getAccount(key);
-
-        if (!entity) return accounts;
-
-        accounts.push(entity);
-        return accounts;
-      },
-      [],
-    );
-
-    if (accountEntities.length < 1) return [];
-
-    const allAccounts: AccountInfo[] = accountEntities.map<AccountInfo>(
-      (accountEntity: AccountEntity): AccountInfo => getAccountInfo(accountEntity),
-    );
-
-    return allAccounts;
-  }
-
-  protected emitEvent(eventName: string, interactionType?: InteractionType, payload?: unknown, error?: unknown): void {
-    this.logger.verbose(`Emitting event: ${eventName}`);
-
-    if (!IsBrowserEnvironment) return;
-
-    const customEvent = new CustomEvent(eventName, { detail: { interactionType, payload, error } });
-
-    window.dispatchEvent(customEvent);
-  }
-
-  protected async acquireToken(request: RedirectRequest): Promise<void> {
-    const validRequest: RedirectRequest = this.initializeAuthorizationRequest(request, InteractionType.Redirect);
-    this.updateCacheEntries(validRequest);
-
-    const handleBackButton = (event: PageTransitionEvent): void => {
-      // Clear temporary cache if the back button is clicked during the redirect flow.
-      if (event.persisted) {
-        this.logger.verbose("Page was restored from back/forward cache. Clearing temporary cache.");
-        this.cleanRequestByState(validRequest);
-        this.emitEvent(EventType.RESTORE_FROM_BFCACHE, InteractionType.Redirect);
-      }
-    };
+    const initializedAuthCodeRequest: AuthCodeRequest = initializeAuthCodeRequest(request, InteractionType.REDIRECT);
 
     try {
-      // Create auth code request and generate PKCE params
-      const authCodeRequest: RedirectRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+      const authCodeRequest: AuthCodeRequest = await generatePkceParams(initializedAuthCodeRequest);
+      this.updateStoreForAuthRequest(authCodeRequest);
 
-      // Clear temporary cache if the back button is clicked during the redirect flow.
-      window.addEventListener("pageshow", handleBackButton);
-
-      // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-      await this.initiateAuthRequest(authCodeRequest);
+      const navigateUrl: string = this.getAuthCodeUrl(authCodeRequest);
+      this.initiateAuthRequest(navigateUrl, authCodeRequest);
     } catch (e) {
-      window.removeEventListener("pageshow", handleBackButton);
-      this.cleanRequestByState(validRequest);
+      this.cleanStoreForAuthRequest();
       throw e;
     }
   }
 
-  initiateAuthRequest(request: RedirectRequest): Promise<boolean> {
-    this.logger.verbose("initiateAuthRequest called", request.correlationId);
-    const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
+  updateStoreForAuthRequest(request: AuthCodeRequest): void {
+    this.logger.trace("updateStoreForAuthRequest called", request.correlationId);
+    authStore.setKey("scope", request.scope);
+    authStore.setKey("stateObject", request.stateObject);
+    authStore.setKey("pkceCodes", request.pkceCodes);
+  }
 
-    const navigateUrl: string = this.getAuthCodeUrl(request);
+  initiateAuthRequest(navigateUrl: string, request: AuthCodeRequest): void {
+    this.logger.trace("initiateAuthRequest called", request.correlationId);
+
     window.location.assign(navigateUrl);
-
-    return new Promise((resolve): void => {
-      setTimeout(() => {
-        resolve(true);
-      }, DEFAULT_REDIRECT_TIMEOUT_MS);
-    });
   }
 
-  getAuthCodeUrl(request: RedirectRequest): string {
-    this.logger.trace("getAuthCodeUrl called", request.correlationId);
-    return "";
+  protected cleanStoreForAuthRequest(): void {
+    this.logger.trace("cleanStoreForAuthRequest called");
+    authStore.deleteKey("scope");
+    authStore.deleteKey("stateObject");
+    authStore.deleteKey("pkceCodes");
   }
 
-  initializeAuthorizationRequest(request: RedirectRequest, interactionType: InteractionType): RedirectRequest {
-    this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
+  async handleAuthCodeResponse(): Promise<BaseResponse> {
+    this.logger.verbose("handleAuthCodeResponse called");
+    const authCodeResponse: AuthCodeResponse = this.parseAuthCodeResponse();
+    this.validateAuthCodeResponse(authCodeResponse);
 
-    const state = setRequestState(request.state, {
-      interactionType,
-    });
+    this.logger.verbose(`${authCodeResponse.error ? "Error" : "Success"} handling auth code request`);
+    this.logger.verbose(JSON.stringify(authCodeResponse, null, 2));
 
-    const updatedRequest: RedirectRequest = {
-      ...request,
-      state,
-      nonce: request.nonce ?? generateGuid(),
-      responseMode: ResponseMode.FRAGMENT,
-      authenticationScheme: request.authenticationScheme ?? AuthenticationScheme.BEARER,
-      account: request.account ?? this.getActiveAccount() ?? undefined,
-    };
-
-    return updatedRequest;
-  }
-
-  async initializeAuthorizationCodeRequest(request: RedirectRequest): Promise<RedirectRequest> {
-    const S256_CODE_CHALLENGE_METHOD = "S256";
-    this.logger.verbose("initializeAuthorizationCodeRequest called", request.correlationId);
-    const generatedPkceParams: PkceCodesResult = await generatePkceCodes();
-    return {
-      ...request,
-      codeChallenge: generatedPkceParams.challenge,
-      codeChallengeMethod: S256_CODE_CHALLENGE_METHOD,
-      codeVerifier: generatedPkceParams.verifier,
-    };
-  }
-
-  getActiveAccount(): AccountInfo | null {
-    this.logger.trace("getActiveAccount: No active account found");
-    return null;
-  }
-
-  getAccount(accountKey: string): AccountEntity | null {
-    this.logger.trace("getAccount called");
-
-    const { accounts } = authStore.value;
-    if (!accounts) return null;
-
-    const account: AccountEntity | undefined = accounts[accountKey];
-    if (!account) {
-      this.removeAccountKeyFromMap(accountKey);
-      return null;
+    if (authCodeResponse.error) {
+      this.cleanStoreForAuthRequest();
+      return authCodeResponse;
     }
 
-    return account;
+    const tokenResponse: TokenResponse = await this.exchangeAuthCodeForToken(authCodeResponse);
+    if (tokenResponse.error) {
+      this.cleanStoreForAuthRequest();
+      return tokenResponse;
+    }
+
+    tokenResponse.stateObject = authStore.value.stateObject;
+    this.cleanStoreForAuthRequest();
+
+    return tokenResponse;
   }
 
-  removeAccountKeyFromMap(accountKey: string): void {
-    this.logger.trace(`removeAccountKeyFromMap called with key: ${accountKey}`);
+  protected parseCommonResponseUrlParams(): BaseResponse {
+    this.logger.trace("parseCommonResponseUrlParams called");
 
-    const { accountKeys } = authStore.value;
-    if (!accountKeys || accountKeys.length < 1) return;
+    const response: AuthCodeResponse = {};
 
-    const removalIndex = accountKeys.indexOf(accountKey);
-    if (removalIndex > -1) {
-      accountKeys.splice(removalIndex, 1);
-      authStore.setKey("accountKeys", accountKeys);
-      this.logger.trace(`Account key: ${accountKey} successfully removed`);
-    } else this.logger.trace(`Account key: ${accountKey} not found in cache`);
+    const searchParams = new URLSearchParams(location.search);
+    response.error = decodeParamValue(searchParams, "error");
+    response.errorDescription = decodeParamValue(searchParams, "error_description");
+
+    const errorCodes: string | null = decodeParamValue(searchParams, "error_codes");
+    // eslint-disable-next-line no-nested-ternary
+    response.errorCodes = Array.isArray(errorCodes) ? errorCodes : errorCodes ? [errorCodes] : null;
+
+    response.timestamp = decodeParamValue(searchParams, "timestamp") ?? getCurrentUTCTimestamp();
+    response.traceId = decodeParamValue(searchParams, "trace_id");
+    response.correlationId =
+      decodeParamValue(searchParams, "correlation_id") ?? authStore.value.stateObject.correlationId;
+
+    return response;
   }
 
-  updateCacheEntries(_request: RedirectRequest): void {
-    this.logger.trace("updateCacheEntries called");
+  protected parseAuthCodeResponse(): AuthCodeResponse {
+    this.logger.trace("parseAuthCodeResponseUrlParams called");
+
+    const searchParams = new URLSearchParams(location.search);
+    const baseResponse: BaseResponse = this.parseCommonResponseUrlParams();
+    const authCodeResponse: AuthCodeResponse = {
+      ...baseResponse,
+      code: decodeParamValue(searchParams, "code"),
+      state: decodeParamValue(searchParams, "state"),
+    } as AuthCodeResponse;
+
+    return authCodeResponse;
   }
 
-  cleanRequestByState(_request: RedirectRequest): void {
-    this.logger.trace("cleanRequestByState called");
+  protected validateBaseResponse(response: BaseResponse): void {
+    this.logger.trace("validateBaseResponse called");
+
+    // Implement throtling logic here, see checkResponseStatus and checkResponseForRetryAfter in msal-browser
+    if ((response.errorDescription || (response.errorCodes && response.errorCodes.length > 0)) && !response.error)
+      response.error = "invalid_request";
+  }
+
+  protected validateAuthCodeResponse(response: AuthCodeResponse): void {
+    this.logger.trace("validateAuthCodeResponse called");
+
+    this.validateBaseResponse(response);
+
+    if (response.error) return;
+
+    if (!response.code) {
+      response.error = "invalid_request";
+      response.errorDescription = "Failed to retrieve auth code from url";
+      return;
+    }
+    if (authStore.value.scope.length === 0) {
+      response.error = "invalid_state";
+      response.errorDescription = "Scope not present in cache";
+      return;
+    }
+    if (!response.state) {
+      response.error = "invalid_request";
+      response.errorDescription = "Failed to retrieve state from url";
+      return;
+    }
+    if (!authStore.value.stateObject.encodedState) {
+      response.error = "invalid_state";
+      response.errorDescription = "State not present in cache";
+      return;
+    }
+    if (decodeURIComponent(response.state) !== authStore.value.stateObject.encodedState) {
+      response.error = "invalid_state";
+      response.errorDescription = "State mismatch";
+    }
+    if (!authStore.value.pkceCodes.codeVerifier) {
+      response.error = "invalid_state";
+      response.errorDescription = "Code verifier not present in cache";
+    }
+  }
+
+  async exchangeAuthCodeForToken(authCodeResponse: AuthCodeResponse): Promise<TokenResponse> {
+    this.logger.verbose("exchangeAuthCodeForToken called");
+
+    const queryString: string = this.getTokenQueryString(authCodeResponse);
+    const headers: HeadersInit = {
+      [HeaderName.CONTENT_TYPE]: ContentType.URL_FORM_CONTENT_TYPE,
+    };
+
+    const response = await fetch(this.tokenEndpoint, {
+      method: "POST",
+      headers,
+      body: queryString,
+    });
+
+    const tokenResponseJson: string = JSON.stringify(await response.json());
+    const tokenResponse: TokenResponse = this.parseTokenResponse(tokenResponseJson);
+
+    this.logger.verbose(`${tokenResponse.error ? "Error" : "Success"} handling token request`);
+    this.logger.verbose(JSON.stringify(tokenResponse, null, 2));
+
+    return tokenResponse;
+  }
+
+  protected parseTokenResponse(tokenResponseJson: string): TokenResponse {
+    this.logger.trace("parseTokenResponse called");
+
+    const parsedResponse: Record<string, unknown> = JSON.parse(tokenResponseJson);
+    const tokenResponse: TokenResponse = {} as TokenResponse;
+
+    if (Object.hasOwn(parsedResponse, "error")) tokenResponse.error = parsedResponse["error"] as string;
+    if (Object.hasOwn(parsedResponse, "error_description"))
+      tokenResponse.errorDescription = parsedResponse["error_description"] as string;
+    if (Object.hasOwn(parsedResponse, "error_codes"))
+      tokenResponse.errorCodes = parsedResponse["error_codes"] as string[];
+    if (Object.hasOwn(parsedResponse, "timestamp")) tokenResponse.timestamp = parsedResponse["timestamp"] as string;
+    else tokenResponse.timestamp = getCurrentUTCTimestamp();
+    if (Object.hasOwn(parsedResponse, "trace_id")) tokenResponse.traceId = parsedResponse["trace_id"] as string;
+    if (Object.hasOwn(parsedResponse, "correlation_id"))
+      tokenResponse.correlationId = parsedResponse["correlation_id"] as string;
+    else tokenResponse.correlationId = authStore.value.stateObject.correlationId;
+    if (Object.hasOwn(parsedResponse, "access_token"))
+      tokenResponse.accessToken = parsedResponse["access_token"] as string;
+    if (Object.hasOwn(parsedResponse, "token_type")) tokenResponse.tokenType = parsedResponse["token_type"] as string;
+    if (Object.hasOwn(parsedResponse, "expires_in")) tokenResponse.expiresIn = parsedResponse["expires_in"] as number;
+    if (Object.hasOwn(parsedResponse, "scope")) tokenResponse.scope = parsedResponse["scope"] as string;
+    if (Object.hasOwn(parsedResponse, "refresh_token"))
+      tokenResponse.refreshToken = parsedResponse["refresh_token"] as string;
+    if (Object.hasOwn(parsedResponse, "id_token")) tokenResponse.idToken = parsedResponse["id_token"] as string;
+
+    return tokenResponse;
   }
 }

@@ -43,7 +43,6 @@ export interface AccountInfo {
   name?: string | undefined;
   idToken?: string | undefined;
   idTokenClaims?: TokenClaims | undefined;
-  nativeAccountId?: string | undefined;
 }
 
 export interface AccountEntity {
@@ -60,7 +59,6 @@ export interface AccountEntity {
   cloudGraphHostName?: string;
   msGraphHost?: string;
   idTokenClaims?: TokenClaims;
-  nativeAccountId?: string;
 }
 
 export interface TokenKeys {
@@ -77,6 +75,5 @@ export const getAccountInfo = function getAccountInfo(accountEntity: AccountEnti
     username: accountEntity.username,
     localAccountId: accountEntity.localAccountId,
     name: accountEntity.name,
-    nativeAccountId: accountEntity.nativeAccountId,
   };
 };

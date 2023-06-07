@@ -2,10 +2,12 @@
 import { defineMapStore } from "@src/services/stores/mapStore";
 
 export type AppStore = {
-  jwtToken?: string;
+  jwtToken?: string | undefined;
 };
 
-const initialValue: AppStore = {};
+const initialValue: AppStore = {
+  jwtToken: undefined,
+};
 
 const prefix = "app/";
 

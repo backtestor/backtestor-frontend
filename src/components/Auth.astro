@@ -27,22 +27,31 @@ import { t } from "i18next";
 </PMenu>
 
 <script>
+  import { AuthOptions } from "@services/auth/auth";
+  import { AuthConstants, OIDC_SCOPES } from "@services/auth/constants";
+  import { defineMsaAuth, msaAuthOptions } from "@services/auth/msaAuth";
+  import { AuthCodeRequest } from "@services/auth/request";
+  import { LogLevel, defineConsoleLogger, mapStringToLogLevel } from "@services/logger/logger";
   import { AppStore, appStore } from "@services/stores/appStore";
-  import { defineMsaAuth, msaAuthOptions } from "@src/services/auth/msaAuth";
-  import { RedirectRequest } from "@src/services/auth/request";
 
   const headerComponent = "headerComponent";
   const signInButton = document.getElementById("sign-in-button") as HTMLElement;
 
-  // Functions
-  const signInMsa = function signIn(): void {
-    const options = msaAuthOptions;
-    const auth = defineMsaAuth(options);
+  const loggerLevelString: string = import.meta.env.PUBLIC_LOG_LEVEL;
+  const loggerLevel: LogLevel = mapStringToLogLevel(loggerLevelString);
+  const logger = defineConsoleLogger(loggerLevel, AuthConstants.PACKAGE_NAME);
 
-    const request: RedirectRequest = {
-      scopes: import.meta.env.PUBLIC_MSA_SCOPES.split(" "),
+  // Functions
+  const signInMsa = function signInMsa(): void {
+    const options: AuthOptions = {
+      ...msaAuthOptions,
+      logger: logger,
     };
-    auth.loginRedirect(request);
+    const auth = defineMsaAuth(options);
+    const request: AuthCodeRequest = {
+      scope: OIDC_SCOPES,
+    };
+    auth.getAuthCode(request);
   };
 
   // Elements Update
@@ -51,7 +60,9 @@ import { t } from "i18next";
   };
 
   // View Update
-  const initView = function initView(): void {};
+  const initView = function initView(): void {
+    // Intended.
+  };
 
   const updateLoginView = function updateLoginView(newKey: string): void {
     console.log(`updateLoginView: ${newKey}`);
@@ -60,7 +71,7 @@ import { t } from "i18next";
   // State Update
 
   // Events
-  const onClickSignIn = function onClickSignIn(event: Event): void {
+  const onClickSignInMsa = function onClickSignInMsa(event: Event): void {
     if (!event.currentTarget) return;
 
     signInMsa();
@@ -74,7 +85,7 @@ import { t } from "i18next";
     if (source === headerComponent || typeof value === "undefined") return;
 
     if (key === "jwtToken") {
-      const newValue = value.toString();
+      const newValue: string = value.toString();
       updateLoginView(newValue);
     }
   };
@@ -83,17 +94,7 @@ import { t } from "i18next";
   initView();
   updateAuthElements();
 
-  signInButton.addEventListener("click", onClickSignIn, { passive: true });
+  signInButton.addEventListener("click", onClickSignInMsa, { passive: true });
 
   appStore.listen(onChangeAppStore);
-
-  console.log(`Mode: ${import.meta.env.MODE}`);
-  console.log(`Production: ${import.meta.env.PROD}`);
-  console.log(`Development: ${import.meta.env.DEV}`);
-  console.log(`Base URL: ${import.meta.env.BASE_URL}`);
-  console.log(`Site: ${import.meta.env.SITE}`);
-  console.log(`ClientId: ${import.meta.env.PUBLIC_MSA_CLIENT_ID}`);
-  console.log(`Authority: ${import.meta.env.PUBLIC_MSA_AUTHORITY}`);
-  console.log(`RedirectUri: ${import.meta.env.PUBLIC_MSA_REDIRECT_URI}`);
-  console.log(`PostLogoutRedirectUri: ${import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI}`);
 </script>

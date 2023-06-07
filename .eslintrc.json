@@ -80,6 +80,7 @@
       "error",
       "all",
       {
+        "conditionalAssign": false,
         "enforceForArrowConditionals": false,
         "enforceForFunctionPrototypeMethods": false,
         "ignoreJSX": "all",

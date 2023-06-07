@@ -1,5 +1,4 @@
 /* eslint-disable no-mixed-operators */
-
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-bitwise */
 /* eslint-disable no-plusplus */

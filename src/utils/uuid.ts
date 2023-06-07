@@ -1,7 +1,12 @@
-import { decimalToHex } from "@utils/math";
+const decimalToHex = function decimalToHex(num: number): string {
+  let hex: string = num.toString(16);
+  while (hex.length < 2) hex = `0${hex}`;
+
+  return hex;
+};
 
 /* eslint-disable no-bitwise */
-export const applyVersionAndVariant = function applyVersionAndVariant(buffer: Uint8Array): void {
+const applyVersionAndVariant = function applyVersionAndVariant(buffer: Uint8Array): void {
   /*
    * Buffer[6] and buffer[7] represents the time_hi_and_version field. We will set the four most significant bits (4 through 7) of buffer[6] to represent decimal number 4 (UUID version number).
    * buffer[6] |= 0x40; => Buffer[6] | 01000000 will set the 6 bit to 1.

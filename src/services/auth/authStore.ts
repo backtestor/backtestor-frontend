@@ -1,14 +1,18 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { defineMapStore } from "@services/stores/mapStore";
-import { AccountEntity } from "./account";
+import { PkceCodes, StateObject } from "./request";
 
 export type AuthStore = {
-  interactionStatus?: string;
-  accountKeys?: string[];
-  accounts?: Record<string, AccountEntity>;
+  scope: string[];
+  stateObject: StateObject;
+  pkceCodes: PkceCodes;
 };
 
-const initialValue: AuthStore = {};
+const initialValue: AuthStore = {
+  scope: [],
+  stateObject: {} as StateObject,
+  pkceCodes: {} as PkceCodes,
+};
 
 const prefix = "auth/";
 

@@ -1,20 +1,26 @@
-export interface ServerAuthorizationCodeResponse {
-  // Success case
-  code?: string;
-  client_info?: string;
-  state?: string;
-  cloud_instance_name?: string;
-  cloud_instance_host_name?: string;
-  cloud_graph_host_name?: string;
-  msgraph_host?: string;
-  // Error case
-  error?: string;
-  error_description?: string;
-  suberror?: string;
-  timestamp?: string;
-  trace_id?: string;
-  correlation_id?: string;
-  claims?: string;
-  // Native Account ID
-  accountId?: string;
+import { StateObject } from "./request";
+
+export interface BaseResponse {
+  error?: string | null;
+  errorDescription?: string | null;
+  errorCodes?: string[] | null;
+  timestamp?: string | null;
+  traceId?: string | null;
+  correlationId?: string | null;
+}
+
+export interface AuthCodeResponse extends BaseResponse {
+  code?: string | null;
+  state?: string | null;
+  idToken?: string | null;
+}
+
+export interface TokenResponse extends BaseResponse {
+  accessToken?: string | null;
+  tokenType?: string | null;
+  expiresIn?: number | null;
+  scope?: string | null;
+  refreshToken?: string | null;
+  idToken?: string | null;
+  stateObject?: StateObject | undefined;
 }

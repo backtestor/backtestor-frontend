@@ -30,6 +30,12 @@
       "description": "Make smarter decisions with our backtesting tool.",
       "header": "???"
     },
+    "auth-response": {
+      "title": "Authentication Callback",
+      "description": "Handle authentication callback for authentication provider integration.",
+      "header": "Authenticating...",
+      "error": "Authentication failed"
+    },
     "404": {
       "title": "Page not found - Error 404",
       "description": "The requested URL was not found on this server.",
