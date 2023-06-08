@@ -1,12 +1,29 @@
 import { Logger, defineNullLogger } from "@services/logger/logger";
 import { encode } from "@utils/base64";
 import { generateGuid } from "@utils/uuid";
-import { authStore } from "./authStore";
+import { authLocalStore, authSessionStore } from "./authStore";
 import { preflightBrowserEnvironmentCheck } from "./browser";
-import { ContentType, HeaderName, InteractionType, OIDC_DEFAULT_SCOPES, ResponseMode, ResponseType } from "./constants";
+import {
+  ContentType,
+  HeaderName,
+  InteractionType,
+  OIDC_DEFAULT_SCOPES,
+  OIDC_SCOPES,
+  ResponseMode,
+  ResponseType,
+} from "./constants";
 import { generatePkceCodes } from "./pkce";
-import { AuthCodeRequest, PkceCodes, StateObject } from "./request";
+import { AuthCodeRequest } from "./request";
 import { AuthCodeResponse, BaseResponse, TokenResponse } from "./response";
+import { PkceCodes, StateObject, TokenKeys } from "./types";
+
+export const defineAuthCodeRequest = function defineAuthCodeRequest(scope?: string[]): AuthCodeRequest {
+  const request: AuthCodeRequest = {
+    scope: scope ?? OIDC_SCOPES,
+  };
+
+  return request;
+};
 
 export interface AuthOptions {
   logger?: Logger;
@@ -20,7 +37,7 @@ export interface AuthOptions {
 }
 
 export interface Auth {
-  getAuthCode(request: AuthCodeRequest): void;
+  getAuthCode(request?: AuthCodeRequest): void;
   handleAuthCodeResponse(): Promise<BaseResponse>;
 }
 
@@ -28,57 +45,14 @@ const getCurrentUTCTimestamp = (): string => {
   const now = new Date();
   // Format: "YYYY-MM-DD HH:MM:SS"
   const [utcString] = now.toISOString().replace("T", " ").split(".");
-  return utcString ?? "";
+  return `${utcString ?? ""} UTC`;
 };
 
-const setState = function setState(
-  correlationId: string,
-  interactionType: InteractionType,
-  meta?: Record<string, string>,
-): StateObject {
-  const stateObject: StateObject = {
-    correlationId,
-    interactionType,
-  };
-
-  if (interactionType === InteractionType.REDIRECT) stateObject.redirectStartPage = window.location.href;
-  if (meta) stateObject.meta = meta;
-
-  const stateString: string = JSON.stringify(stateObject);
-  stateObject.encodedState = encode(stateString);
-
-  return stateObject;
-};
-
-const initializeAuthCodeRequest = function initializeAuthCodeRequest(
-  request: AuthCodeRequest,
-  interactionType: InteractionType,
-): AuthCodeRequest {
-  const stateObject: StateObject = setState(request.correlationId ?? generateGuid(), interactionType);
-
-  const scopeSet = new Set([...request.scope, ...OIDC_DEFAULT_SCOPES]);
-  const scopeArray: string[] = Array.from(scopeSet);
-
-  const initializedAuthCodeRequest: AuthCodeRequest = {
-    ...request,
-    scope: scopeArray,
-    responseType: ResponseType.CODE,
-    responseMode: ResponseMode.QUERY,
-    stateObject,
-    nonce: request.nonce ?? generateGuid(),
-  };
-
-  return initializedAuthCodeRequest;
-};
-
-const generatePkceParams = async function generatePkceParams(request: AuthCodeRequest): Promise<AuthCodeRequest> {
-  const pkceCodes: PkceCodes = await generatePkceCodes();
-  const authCodeRequest: AuthCodeRequest = {
-    ...request,
-    pkceCodes,
-  };
-
-  return authCodeRequest;
+const addSecondsToCurrentDateTime = (seconds: number): Date => {
+  const now = new Date();
+  const milliseconds: number = seconds * 1000;
+  const futureDateTime = new Date(now.getTime() + milliseconds);
+  return futureDateTime;
 };
 
 const decodeParamValue = function decodeParamValue(searchParams: URLSearchParams, paramName: string): string | null {
@@ -118,11 +92,13 @@ export abstract class BaseAuth implements Auth {
 
   abstract getTokenQueryString(authCodeResponse: AuthCodeResponse): string;
 
-  getAuthCode(request: AuthCodeRequest): void {
-    request.correlationId ??= generateGuid();
-    this.logger.verbose("getAuthCode called", request.correlationId);
+  getAuthCode(request?: AuthCodeRequest): void {
+    this.logger.verbose("getAuthCode called", request?.correlationId);
 
-    this.acquireToken(request);
+    const authCodeRequest: AuthCodeRequest = request ?? defineAuthCodeRequest();
+    authCodeRequest.correlationId ??= generateGuid();
+
+    this.acquireToken(authCodeRequest);
   }
 
   async acquireToken(request: AuthCodeRequest): Promise<void> {
@@ -130,10 +106,13 @@ export abstract class BaseAuth implements Auth {
 
     preflightBrowserEnvironmentCheck(InteractionType.REDIRECT);
 
-    const initializedAuthCodeRequest: AuthCodeRequest = initializeAuthCodeRequest(request, InteractionType.REDIRECT);
+    const initializedAuthCodeRequest: AuthCodeRequest = this.initializeAuthCodeRequest(
+      request,
+      InteractionType.REDIRECT,
+    );
 
     try {
-      const authCodeRequest: AuthCodeRequest = await generatePkceParams(initializedAuthCodeRequest);
+      const authCodeRequest: AuthCodeRequest = await this.generatePkceParams(initializedAuthCodeRequest);
       this.updateStoreForAuthRequest(authCodeRequest);
 
       const navigateUrl: string = this.getAuthCodeUrl(authCodeRequest);
@@ -144,11 +123,57 @@ export abstract class BaseAuth implements Auth {
     }
   }
 
+  initializeAuthCodeRequest(request: AuthCodeRequest, interactionType: InteractionType): AuthCodeRequest {
+    this.logger.trace("initializeAuthCodeRequest called", request.correlationId);
+    const stateObject: StateObject = this.setState(request.correlationId ?? generateGuid(), interactionType);
+
+    const scopeSet = new Set([...request.scope, ...OIDC_DEFAULT_SCOPES]);
+    const scopeArray: string[] = Array.from(scopeSet);
+
+    const initializedAuthCodeRequest: AuthCodeRequest = {
+      ...request,
+      scope: scopeArray,
+      responseType: ResponseType.CODE,
+      responseMode: ResponseMode.QUERY,
+      stateObject,
+      nonce: request.nonce ?? generateGuid(),
+    };
+
+    return initializedAuthCodeRequest;
+  }
+
+  setState(correlationId: string, interactionType: InteractionType, meta?: Record<string, string>): StateObject {
+    this.logger.trace("setState called");
+    const stateObject: StateObject = {
+      correlationId,
+      interactionType,
+    };
+
+    if (interactionType === InteractionType.REDIRECT) stateObject.redirectStartPage = window.location.href;
+    if (meta) stateObject.meta = meta;
+
+    const stateString: string = JSON.stringify(stateObject);
+    stateObject.encodedState = encode(stateString);
+
+    return stateObject;
+  }
+
+  async generatePkceParams(request: AuthCodeRequest): Promise<AuthCodeRequest> {
+    this.logger.trace("generatePkceParams called", request.correlationId);
+    const pkceCodes: PkceCodes = await generatePkceCodes();
+    const authCodeRequest: AuthCodeRequest = {
+      ...request,
+      pkceCodes,
+    };
+
+    return authCodeRequest;
+  }
+
   updateStoreForAuthRequest(request: AuthCodeRequest): void {
     this.logger.trace("updateStoreForAuthRequest called", request.correlationId);
-    authStore.setKey("scope", request.scope);
-    authStore.setKey("stateObject", request.stateObject);
-    authStore.setKey("pkceCodes", request.pkceCodes);
+    authSessionStore.setKey("scope", request.scope);
+    authSessionStore.setKey("stateObject", request.stateObject);
+    authSessionStore.setKey("pkceCodes", request.pkceCodes);
   }
 
   initiateAuthRequest(navigateUrl: string, request: AuthCodeRequest): void {
@@ -159,9 +184,9 @@ export abstract class BaseAuth implements Auth {
 
   protected cleanStoreForAuthRequest(): void {
     this.logger.trace("cleanStoreForAuthRequest called");
-    authStore.deleteKey("scope");
-    authStore.deleteKey("stateObject");
-    authStore.deleteKey("pkceCodes");
+    authSessionStore.deleteKey("scope");
+    authSessionStore.deleteKey("stateObject");
+    authSessionStore.deleteKey("pkceCodes");
   }
 
   async handleAuthCodeResponse(): Promise<BaseResponse> {
@@ -183,10 +208,28 @@ export abstract class BaseAuth implements Auth {
       return tokenResponse;
     }
 
-    tokenResponse.stateObject = authStore.value.stateObject;
+    tokenResponse.stateObject = authSessionStore.value.stateObject;
     this.cleanStoreForAuthRequest();
 
+    this.updateStoreWithTokenResponse(tokenResponse);
+
     return tokenResponse;
+  }
+
+  updateStoreWithTokenResponse(tokenResponse: TokenResponse) {
+    this.logger.trace("updateStoreWithTokenResponse called");
+
+    const expiresAtUtc: Date = addSecondsToCurrentDateTime(tokenResponse.expiresIn ?? 0);
+    const tokenKeys: TokenKeys = {
+      authority: this.authority,
+      idToken: tokenResponse.idToken ?? "",
+      accessToken: tokenResponse.accessToken ?? "",
+      refreshToken: tokenResponse.refreshToken ?? "",
+      expiresAtUtc,
+    };
+    authSessionStore.setKey("tokenKeys", tokenKeys);
+
+    authLocalStore.setKey("authority", this.authority);
   }
 
   protected parseCommonResponseUrlParams(): BaseResponse {
@@ -205,7 +248,7 @@ export abstract class BaseAuth implements Auth {
     response.timestamp = decodeParamValue(searchParams, "timestamp") ?? getCurrentUTCTimestamp();
     response.traceId = decodeParamValue(searchParams, "trace_id");
     response.correlationId =
-      decodeParamValue(searchParams, "correlation_id") ?? authStore.value.stateObject.correlationId;
+      decodeParamValue(searchParams, "correlation_id") ?? authSessionStore.value.stateObject.correlationId;
 
     return response;
   }
@@ -244,7 +287,7 @@ export abstract class BaseAuth implements Auth {
       response.errorDescription = "Failed to retrieve auth code from url";
       return;
     }
-    if (authStore.value.scope.length === 0) {
+    if (authSessionStore.value.scope.length === 0) {
       response.error = "invalid_state";
       response.errorDescription = "Scope not present in cache";
       return;
@@ -254,16 +297,16 @@ export abstract class BaseAuth implements Auth {
       response.errorDescription = "Failed to retrieve state from url";
       return;
     }
-    if (!authStore.value.stateObject.encodedState) {
+    if (!authSessionStore.value.stateObject.encodedState) {
       response.error = "invalid_state";
       response.errorDescription = "State not present in cache";
       return;
     }
-    if (decodeURIComponent(response.state) !== authStore.value.stateObject.encodedState) {
+    if (decodeURIComponent(response.state) !== authSessionStore.value.stateObject.encodedState) {
       response.error = "invalid_state";
       response.errorDescription = "State mismatch";
     }
-    if (!authStore.value.pkceCodes.codeVerifier) {
+    if (!authSessionStore.value.pkceCodes.codeVerifier) {
       response.error = "invalid_state";
       response.errorDescription = "Code verifier not present in cache";
     }
@@ -308,7 +351,7 @@ export abstract class BaseAuth implements Auth {
     if (Object.hasOwn(parsedResponse, "trace_id")) tokenResponse.traceId = parsedResponse["trace_id"] as string;
     if (Object.hasOwn(parsedResponse, "correlation_id"))
       tokenResponse.correlationId = parsedResponse["correlation_id"] as string;
-    else tokenResponse.correlationId = authStore.value.stateObject.correlationId;
+    else tokenResponse.correlationId = authSessionStore.value.stateObject.correlationId;
     if (Object.hasOwn(parsedResponse, "access_token"))
       tokenResponse.accessToken = parsedResponse["access_token"] as string;
     if (Object.hasOwn(parsedResponse, "token_type")) tokenResponse.tokenType = parsedResponse["token_type"] as string;

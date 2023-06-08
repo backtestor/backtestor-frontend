@@ -1,5 +1,5 @@
 import { Auth, AuthOptions, BaseAuth } from "./auth";
-import { authStore } from "./authStore";
+import { authSessionStore } from "./authStore";
 import { GrantType, ResponseMode, ResponseType } from "./constants";
 import { AuthCodeRequest } from "./request";
 import { AuthCodeResponse } from "./response";
@@ -46,11 +46,11 @@ class MsaAuth extends BaseAuth {
     const parameters: Map<string, string> = new Map<string, string>();
 
     parameters.set("client_id", encodeURIComponent(this.clientId));
-    parameters.set("scope", encodeURIComponent(authStore.value.scope.join(" ")));
+    parameters.set("scope", encodeURIComponent(authSessionStore.value.scope.join(" ")));
     parameters.set("code", encodeURIComponent(authCodeResponse.code ?? ""));
     parameters.set("redirect_uri", encodeURIComponent(this.redirectUri));
     parameters.set("grant_type", encodeURIComponent(GrantType.AUTHORIZATION_CODE));
-    parameters.set("code_verifier", encodeURIComponent(authStore.value.pkceCodes.codeVerifier ?? ""));
+    parameters.set("code_verifier", encodeURIComponent(authSessionStore.value.pkceCodes.codeVerifier ?? ""));
 
     const queryString: string = Array.from(parameters.entries())
       .map(([key, value]: [string, string]): string => `${key}=${value}`)

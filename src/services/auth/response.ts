@@ -1,4 +1,4 @@
-import { StateObject } from "./request";
+import { StateObject } from "./types";
 
 export interface BaseResponse {
   error?: string | null;

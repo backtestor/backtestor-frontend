@@ -1,3 +1,9 @@
+export const StorageType = {
+  LOCAL_STORAGE: "local_storage",
+  SESSION_STORAGE: "session_storage",
+} as const;
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
+
 export interface MapStore<T extends Record<string, unknown>> {
   value: T;
   setKey(key: keyof T, value: T[keyof T] | undefined, source?: string): void;
@@ -6,6 +12,8 @@ export interface MapStore<T extends Record<string, unknown>> {
 }
 
 class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
+  storage: Storage;
+
   initialValue: T;
 
   value: T;
@@ -14,7 +22,9 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
 
   listeners: ((key: keyof T, value: T[keyof T] | undefined, source?: string) => void)[] = [];
 
-  constructor(value: T, prefix: string) {
+  constructor(value: T, prefix: string, storageType?: StorageType) {
+    this.storage = storageType === StorageType.LOCAL_STORAGE ? localStorage : sessionStorage;
+
     this.initialValue = { ...value };
     this.value = { ...value };
     this.prefix = prefix;
@@ -22,7 +32,7 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
     for (const key in this.initialValue)
       if (Object.hasOwn(this.value, key)) {
         const storageKey = this.getStorageKey(key);
-        const storageValue = localStorage.getItem(storageKey);
+        const storageValue = this.storage.getItem(storageKey);
         let propertyValue = this.initialValue[key];
         if (storageValue !== null)
           if (typeof propertyValue === "string") propertyValue = storageValue as T[Extract<keyof T, string>];
@@ -53,7 +63,7 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
     if (key in this.value) {
       this.value = { ...this.value };
       delete this.value[key];
-      localStorage.removeItem(storageKey);
+      this.storage.removeItem(storageKey);
       this.notify(key, source);
     }
   }
@@ -69,8 +79,8 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
         ...this.value,
         [key]: value,
       };
-      if (typeof value === "string") localStorage.setItem(storageKey, value);
-      else localStorage.setItem(storageKey, JSON.stringify(value));
+      if (typeof value === "string") this.storage.setItem(storageKey, value);
+      else this.storage.setItem(storageKey, JSON.stringify(value));
       this.notify(key, source);
     }
   }
@@ -115,7 +125,8 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
 export const defineMapStore = function defineMapStore<T extends Record<string, unknown>>(
   initValue: T,
   prefix: string,
+  storageType?: StorageType,
 ): MapStore<T> {
-  const store = new MapStoreImpl(initValue, prefix);
+  const store = new MapStoreImpl(initValue, prefix, storageType);
   return store;
 };

@@ -28,9 +28,8 @@ import { t } from "i18next";
 
 <script>
   import { AuthOptions } from "@services/auth/auth";
-  import { AuthConstants, OIDC_SCOPES } from "@services/auth/constants";
+  import { AuthConstants } from "@services/auth/constants";
   import { defineMsaAuth, msaAuthOptions } from "@services/auth/msaAuth";
-  import { AuthCodeRequest } from "@services/auth/request";
   import { LogLevel, defineConsoleLogger, mapStringToLogLevel } from "@services/logger/logger";
   import { AppStore, appStore } from "@services/stores/appStore";
 
@@ -48,10 +47,7 @@ import { t } from "i18next";
       logger: logger,
     };
     const auth = defineMsaAuth(options);
-    const request: AuthCodeRequest = {
-      scope: OIDC_SCOPES,
-    };
-    auth.getAuthCode(request);
+    auth.getAuthCode();
   };
 
   // Elements Update

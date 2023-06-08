@@ -1,19 +1,39 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import { defineMapStore } from "@services/stores/mapStore";
-import { PkceCodes, StateObject } from "./request";
+import { MapStore, StorageType, defineMapStore } from "@services/stores/mapStore";
+import { PkceCodes, StateObject, TokenKeys } from "./types";
 
-export type AuthStore = {
+export type AuthLocalStore = {
+  authority: string;
+};
+
+const initialLocalValue: AuthLocalStore = {
+  authority: "",
+};
+
+export type AuthSessionStore = {
   scope: string[];
   stateObject: StateObject;
   pkceCodes: PkceCodes;
+  tokenKeys: TokenKeys;
 };
 
-const initialValue: AuthStore = {
+const initialSessionValue: AuthSessionStore = {
   scope: [],
   stateObject: {} as StateObject,
   pkceCodes: {} as PkceCodes,
+  tokenKeys: {} as TokenKeys,
 };
 
 const prefix = "auth/";
 
-export const authStore = defineMapStore(initialValue, prefix);
+export const authLocalStore: MapStore<AuthLocalStore> = defineMapStore(
+  initialLocalValue,
+  prefix,
+  StorageType.LOCAL_STORAGE,
+);
+
+export const authSessionStore: MapStore<AuthSessionStore> = defineMapStore(
+  initialSessionValue,
+  prefix,
+  StorageType.SESSION_STORAGE,
+);

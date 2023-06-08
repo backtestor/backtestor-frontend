@@ -1,18 +1,5 @@
-import { GrantType, InteractionType, ResponseMode, ResponseType } from "./constants";
-
-export interface StateObject {
-  correlationId: string;
-  interactionType: InteractionType;
-  redirectStartPage?: string;
-  meta?: Record<string, string>;
-  encodedState?: string;
-}
-
-export interface PkceCodes {
-  codeVerifier?: string;
-  codeChallenge?: string;
-  codeChallengeMethod?: string;
-}
+import { GrantType, ResponseMode, ResponseType } from "./constants";
+import { PkceCodes, StateObject } from "./types";
 
 export interface BaseRequest {
   correlationId?: string | undefined;
