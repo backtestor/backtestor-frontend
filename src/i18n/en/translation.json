@@ -36,6 +36,12 @@
       "header": "Authenticating...",
       "error": "Authentication failed"
     },
+    "signin": {
+      "title": "Sign in to Backtestor",
+      "description": "Sign in to Backtestor and access your account. Analyze historical data, evaluate strategies, and make smarter decisions.",
+      "header": "Sign in to Backtestor",
+      "sign-in-msa": "Sign in with Microsoft"
+    },
     "404": {
       "title": "Page not found - Error 404",
       "description": "The requested URL was not found on this server.",

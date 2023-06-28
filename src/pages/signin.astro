@@ -1,0 +1,18 @@
+---
+import PSvg from "@src/components/generic/PSvg.astro";
+import EmptyLayout from "@src/layouts/EmptyLayout.astro";
+import { changeLanguage, t } from "i18next";
+
+changeLanguage("en");
+
+const title = t("pages.signin.title");
+const description = t("pages.signin.description");
+---
+
+<EmptyLayout title={title} description={description}>
+  <header class="flex flex-col items-center justify-center">
+    <PSvg name="bt" svgClass="h-40" />
+    <h1>{t("pages.signin.header")}</h1>
+    <button class="btn btn-outline" id="sign-in-button-msa" type="button">{t("pages.signin.sign-in-msa")}</button>
+  </header>
+</EmptyLayout>
