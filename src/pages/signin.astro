@@ -1,6 +1,6 @@
 ---
 import EmptyLayout from "@layouts/EmptyLayout.astro";
-import Auth from "@src/components/auth/Signin.astro";
+import SigninForm from "@src/components/auth/SigninForm.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -10,5 +10,5 @@ const description = t("pages.signin.description");
 ---
 
 <EmptyLayout title={title} description={description}>
-  <Auth />
+  <SigninForm />
 </EmptyLayout>

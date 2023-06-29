@@ -1,10 +1,9 @@
-import { Auth, AuthOptions, BaseAuth } from "./auth";
+import { Logger } from "@services/logger";
+import { Auth, AuthCodeRequest, AuthCodeResponse, AuthOptions, GrantType, ResponseMode, ResponseType } from ".";
+import { BaseAuth } from "./auth";
 import { authSessionStore } from "./authStore";
-import { GrantType, ResponseMode, ResponseType } from "./constants";
-import { AuthCodeRequest } from "./request";
-import { AuthCodeResponse } from "./response";
 
-export const msaAuthOptions: AuthOptions = {
+const msaAuthOptions: AuthOptions = {
   clientId: import.meta.env.PUBLIC_MSA_CLIENT_ID,
   redirectUri: import.meta.env.PUBLIC_MSA_REDIRECT_URI,
   postLogoutRedirectUri: import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI,
@@ -14,15 +13,23 @@ export const msaAuthOptions: AuthOptions = {
   endSessionEndpoint: import.meta.env.PUBLIC_MSA_END_SESSION_ENDPOINT,
 };
 
+export const defineMsaAuthOptions = function defineMsaAuthOptions(logger?: Logger): AuthOptions {
+  const options: AuthOptions = {
+    ...msaAuthOptions,
+    logger,
+  };
+  return options;
+};
+
 class MsaAuth extends BaseAuth {
   override getAuthCodeUrl(request: AuthCodeRequest): string {
-    this.logger.trace("getAuthCodeUrl called", request.correlationId);
+    this.logger.trace("getAuthCodeUrl called");
     const parameters: Map<string, string> = new Map<string, string>();
 
     parameters.set("client_id", encodeURIComponent(this.clientId));
     parameters.set("response_type", encodeURIComponent(request.responseType ?? ResponseType.CODE));
     parameters.set("redirect_uri", encodeURIComponent(this.redirectUri));
-    parameters.set("scope", encodeURIComponent(request.scope.join(" ")));
+    parameters.set("scope", encodeURIComponent((request.scope ?? []).join(" ")));
     parameters.set("response_mode", encodeURIComponent(request.responseMode ?? ResponseMode.QUERY));
 
     if (request.stateObject) parameters.set("state", encodeURIComponent(request.stateObject.encodedState ?? ""));
@@ -42,7 +49,7 @@ class MsaAuth extends BaseAuth {
   }
 
   getTokenQueryString(authCodeResponse: AuthCodeResponse): string {
-    this.logger.trace("getTokenQueryString called", authCodeResponse.correlationId ?? "");
+    this.logger.trace("getTokenQueryString called");
     const parameters: Map<string, string> = new Map<string, string>();
 
     parameters.set("client_id", encodeURIComponent(this.clientId));

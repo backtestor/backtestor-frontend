@@ -1,36 +1,8 @@
 /* eslint-disable no-console */
-export const LogLevel = {
-  ERROR: "error",
-  WARNING: "warning",
-  INFO: "info",
-  VERBOSE: "verbose",
-  TRACE: "trace",
-} as const;
 
-export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
+import { LogLevel, Logger, LoggerCallback, LoggerOptions } from ".";
 
-export type LoggerCallback = (
-  logLevel: LogLevel,
-  message: string,
-  correlationId: string | undefined,
-  packageName: string | undefined,
-) => void;
-
-export interface LoggerOptions {
-  logLevel?: LogLevel;
-  loggerCallback: LoggerCallback;
-  correlationId?: string;
-}
-
-export interface Logger {
-  error(message: string, correlationId?: string): void;
-  warning(message: string, correlationId?: string): void;
-  info(message: string, correlationId?: string): void;
-  verbose(message: string, correlationId?: string): void;
-  trace(message: string, correlationId?: string): void;
-}
-
-export const mapStringToLogLevel = function mapStringToLogLevel(logLevelString: string): LogLevel {
+const mapStringToLogLevel = function mapStringToLogLevel(logLevelString: string): LogLevel {
   switch (logLevelString) {
     case "error":
       return LogLevel.ERROR;
@@ -59,16 +31,9 @@ const nullLoggerCallback: LoggerCallback = (): void => {
   // Intentionally empty
 };
 
-const consoleLoggerCallback: LoggerCallback = function consoleLoggerCallback(
-  level: LogLevel,
-  message: string,
-  correlationId: string | undefined,
-  packageName: string | undefined,
-): void {
-  const timestamp = new Date().toISOString();
-  const logMessage = `${timestamp} [${level}]${correlationId ? `[${correlationId}]` : ""}${
-    packageName ? `[${packageName}]` : ""
-  } ${message}`;
+const consoleLoggerCallback: LoggerCallback = function consoleLoggerCallback(level: LogLevel, message: string): void {
+  const timestamp: string = new Date().toISOString();
+  const logMessage = `${timestamp} [${level}] ${message}`;
   switch (level) {
     case LogLevel.ERROR:
       console.error(logMessage);
@@ -96,66 +61,64 @@ class LoggerImpl implements Logger {
 
   loggerCallback?: LoggerCallback;
 
-  correlationId: string | undefined;
-
-  packageName: string | undefined;
-
-  constructor(options: LoggerOptions, packageName?: string) {
+  constructor(options: LoggerOptions) {
     this.logLevel = typeof options.logLevel === "undefined" ? LogLevel.INFO : options.logLevel;
     this.loggerCallback = options.loggerCallback;
-    this.correlationId = options.correlationId;
-    this.packageName = packageName;
   }
 
-  logMessage(level: LogLevel, message: string, correlationId?: string): void {
-    const currentLevel: number = logLevelMapping[this.logLevel];
+  logMessage(level: LogLevel, message: string): void {
+    const definedLevel: number = logLevelMapping[this.logLevel];
     const providedLevel: number = logLevelMapping[level];
 
-    if (providedLevel > currentLevel) return;
+    if (providedLevel > definedLevel) return;
 
-    this.loggerCallback?.(level, message, correlationId ?? this.correlationId, this.packageName);
+    this.loggerCallback?.(level, message);
   }
 
-  error(message: string, correlationId?: string): void {
-    this.logMessage(LogLevel.ERROR, message, correlationId);
+  error(message: string): void {
+    this.logMessage(LogLevel.ERROR, message);
   }
 
-  warning(message: string, correlationId?: string): void {
-    this.logMessage(LogLevel.WARNING, message, correlationId);
+  warning(message: string): void {
+    this.logMessage(LogLevel.WARNING, message);
   }
 
-  info(message: string, correlationId?: string): void {
-    this.logMessage(LogLevel.INFO, message, correlationId);
+  info(message: string): void {
+    this.logMessage(LogLevel.INFO, message);
   }
 
-  verbose(message: string, correlationId?: string): void {
-    this.logMessage(LogLevel.VERBOSE, message, correlationId);
+  verbose(message: string): void {
+    this.logMessage(LogLevel.VERBOSE, message);
   }
 
-  trace(message: string, correlationId?: string): void {
-    this.logMessage(LogLevel.TRACE, message, correlationId);
+  trace(message: string): void {
+    this.logMessage(LogLevel.TRACE, message);
   }
 }
 
-export const defineLogger = function defineLogger(options: LoggerOptions, packageName?: string): Logger {
-  const logger = new LoggerImpl(options, packageName);
+export const defineLogger = function defineLogger(options: LoggerOptions): Logger {
+  const logger = new LoggerImpl(options);
   return logger;
 };
 
-export const defineNullLogger = function defineNullLogger(logLevel?: LogLevel, packageName?: string): Logger {
+export const defineNullLogger = function defineNullLogger(loggerLevel?: string): Logger {
+  const logLevelString: string = loggerLevel ?? import.meta.env.PUBLIC_LOG_LEVEL;
+  const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
   const options: LoggerOptions = {
-    logLevel: logLevel ?? LogLevel.INFO,
+    logLevel,
     loggerCallback: nullLoggerCallback,
   };
 
-  return defineLogger(options, packageName);
+  return defineLogger(options);
 };
 
-export const defineConsoleLogger = function defineConsoleLogger(logLevel?: LogLevel, packageName?: string): Logger {
+export const defineConsoleLogger = function defineConsoleLogger(loggerLevel?: string): Logger {
+  const logLevelString: string = loggerLevel ?? import.meta.env.PUBLIC_LOG_LEVEL;
+  const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
   const options: LoggerOptions = {
-    logLevel: logLevel ?? LogLevel.INFO,
+    logLevel,
     loggerCallback: consoleLoggerCallback,
   };
 
-  return defineLogger(options, packageName);
+  return defineLogger(options);
 };

@@ -10,6 +10,10 @@
         "header": "Sign in to <0>$t(app.title-short)</0>",
         "signin-msa": "Sign in with Microsoft"
       },
+      "auth-response": {
+        "header": "Authenticating...",
+        "error": "Authentication failed"
+      },
       "sign-in": "Sign In"
     },
     "header": {
@@ -34,9 +38,7 @@
     },
     "auth-response": {
       "title": "Authentication Callback",
-      "description": "Handle authentication callback for authentication provider integration.",
-      "header": "Authenticating...",
-      "error": "Authentication failed"
+      "description": "Handle authentication callback for authentication provider integration."
     },
     "signin": {
       "title": "Sign in to $t(app.title-short)",

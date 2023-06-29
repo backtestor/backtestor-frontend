@@ -1,0 +1,64 @@
+---
+import PSvg from "@components/generic/PSvg.astro";
+import { changeLanguage, t } from "i18next";
+
+changeLanguage("en");
+---
+
+<header class="flex flex-col items-center justify-center">
+  <PSvg name="bt" svgClass="h-40" />
+  <h1 id="page-header">{t("components.auth.auth-response.header")}</h1>
+  <h1 id="error-header" hidden>{t("components.auth.auth-response.error")}</h1>
+  <p id="error-code" hidden>.</p>
+  <p id="error-description" hidden>.</p>
+  <p id="timestamp" hidden>.</p>
+  <p id="correlation-id" hidden>.</p>
+</header>
+
+<script>
+  import { Auth, AuthOptions, BaseResponse, TokenResponse } from "@services/auth";
+  import { defineMsaAuth, defineMsaAuthOptions } from "@services/auth/msaAuth";
+  import { Logger, defineConsoleLogger } from "@services/logger";
+
+  const pageHeader = document.getElementById("page-header") as HTMLElement;
+  const errorHeader = document.getElementById("error-header") as HTMLElement;
+  const errorCode = document.getElementById("error-code") as HTMLElement;
+  const errorDescription = document.getElementById("error-description") as HTMLElement;
+  const timestamp = document.getElementById("timestamp") as HTMLElement;
+  const correlationId = document.getElementById("correlation-id") as HTMLElement;
+
+  const logger: Logger = defineConsoleLogger();
+
+  // Functions
+  const showError = function showError(response: BaseResponse): void {
+    logger.error(response.error ?? "");
+    errorCode.innerText = `${response.error}`;
+    errorDescription.innerText = `${response.errorDescription}`;
+    timestamp.innerText = `${response.timestamp}`;
+    correlationId.innerText = `${response.correlationId}`;
+    pageHeader.hidden = true;
+    errorCode.hidden = false;
+    errorHeader.hidden = false;
+    errorDescription.hidden = false;
+    timestamp.hidden = false;
+    correlationId.hidden = false;
+  };
+
+  const handleAuthRedirectResponse = async function handleAuthRedirectResponse(): Promise<void> {
+    const options: AuthOptions = defineMsaAuthOptions(logger);
+    const auth: Auth = defineMsaAuth(options);
+
+    const response: BaseResponse = await auth.handleAuthCodeResponse();
+    if (response.error) {
+      showError(response);
+      return;
+    }
+
+    const tokenResponse: TokenResponse = response as TokenResponse;
+    if (tokenResponse && tokenResponse.stateObject && tokenResponse.stateObject.redirectStartPage)
+      window.location.assign(tokenResponse.stateObject.redirectStartPage);
+  };
+
+  // Init
+  handleAuthRedirectResponse();
+</script>

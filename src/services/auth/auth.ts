@@ -1,45 +1,40 @@
-import { Logger, defineNullLogger } from "@services/logger/logger";
+import { Logger } from "@services/logger";
+import { defineNullLogger } from "@services/logger/logger";
 import { encode } from "@utils/base64";
 import { generateGuid } from "@utils/uuid";
-import { authLocalStore, authSessionStore } from "./authStore";
-import { preflightBrowserEnvironmentCheck } from "./browser";
 import {
+  Auth,
+  AuthCodeRequest,
+  AuthCodeResponse,
+  AuthOptions,
+  BaseResponse,
   ContentType,
   HeaderName,
   InteractionType,
   OIDC_DEFAULT_SCOPES,
   OIDC_SCOPES,
+  PkceCodes,
   ResponseMode,
   ResponseType,
-} from "./constants";
+  StateObject,
+  TokenKeys,
+  TokenResponse,
+} from ".";
+import { authLocalStore, authSessionStore } from "./authStore";
+import { preflightBrowserEnvironmentCheck } from "./browser";
 import { generatePkceCodes } from "./pkce";
-import { AuthCodeRequest } from "./request";
-import { AuthCodeResponse, BaseResponse, TokenResponse } from "./response";
-import { PkceCodes, StateObject, TokenKeys } from "./types";
 
-export const defineAuthCodeRequest = function defineAuthCodeRequest(scope?: string[]): AuthCodeRequest {
+export const defineAuthCodeRequest = function defineAuthCodeRequest(
+  redirectStartPage?: string,
+  scope?: string[],
+): AuthCodeRequest {
   const request: AuthCodeRequest = {
     scope: scope ?? OIDC_SCOPES,
+    redirectStartPage,
   };
 
   return request;
 };
-
-export interface AuthOptions {
-  logger?: Logger;
-  clientId: string;
-  redirectUri: string;
-  postLogoutRedirectUri: string;
-  authority: string;
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
-  endSessionEndpoint: string;
-}
-
-export interface Auth {
-  getAuthCode(request?: AuthCodeRequest): void;
-  handleAuthCodeResponse(): Promise<BaseResponse>;
-}
 
 const getCurrentUTCTimestamp = (): string => {
   const now = new Date();
@@ -93,8 +88,7 @@ export abstract class BaseAuth implements Auth {
   abstract getTokenQueryString(authCodeResponse: AuthCodeResponse): string;
 
   getAuthCode(request?: AuthCodeRequest): void {
-    this.logger.verbose("getAuthCode called", request?.correlationId);
-
+    this.logger.verbose("getAuthCode called");
     const authCodeRequest: AuthCodeRequest = request ?? defineAuthCodeRequest();
     authCodeRequest.correlationId ??= generateGuid();
 
@@ -102,8 +96,7 @@ export abstract class BaseAuth implements Auth {
   }
 
   async acquireToken(request: AuthCodeRequest): Promise<void> {
-    this.logger.trace("acquireToken called", request.correlationId);
-
+    this.logger.trace("acquireToken called");
     preflightBrowserEnvironmentCheck(InteractionType.REDIRECT);
 
     const initializedAuthCodeRequest: AuthCodeRequest = this.initializeAuthCodeRequest(
@@ -116,7 +109,7 @@ export abstract class BaseAuth implements Auth {
       this.updateStoreForAuthRequest(authCodeRequest);
 
       const navigateUrl: string = this.getAuthCodeUrl(authCodeRequest);
-      this.initiateAuthRequest(navigateUrl, authCodeRequest);
+      window.location.assign(navigateUrl);
     } catch (e) {
       this.cleanStoreForAuthRequest();
       throw e;
@@ -124,7 +117,7 @@ export abstract class BaseAuth implements Auth {
   }
 
   initializeAuthCodeRequest(request: AuthCodeRequest, interactionType: InteractionType): AuthCodeRequest {
-    this.logger.trace("initializeAuthCodeRequest called", request.correlationId);
+    this.logger.trace("initializeAuthCodeRequest called");
     const stateObject: StateObject = this.setState(request, interactionType);
 
     const scopeSet = new Set([...(request.scope ?? []), ...OIDC_DEFAULT_SCOPES]);
@@ -160,7 +153,7 @@ export abstract class BaseAuth implements Auth {
   }
 
   async generatePkceParams(request: AuthCodeRequest): Promise<AuthCodeRequest> {
-    this.logger.trace("generatePkceParams called", request.correlationId);
+    this.logger.trace("generatePkceParams called");
     const pkceCodes: PkceCodes = await generatePkceCodes();
     const authCodeRequest: AuthCodeRequest = {
       ...request,
@@ -171,16 +164,10 @@ export abstract class BaseAuth implements Auth {
   }
 
   updateStoreForAuthRequest(request: AuthCodeRequest): void {
-    this.logger.trace("updateStoreForAuthRequest called", request.correlationId);
+    this.logger.trace("updateStoreForAuthRequest called");
     authSessionStore.setKey("scope", request.scope);
     authSessionStore.setKey("stateObject", request.stateObject);
     authSessionStore.setKey("pkceCodes", request.pkceCodes);
-  }
-
-  initiateAuthRequest(navigateUrl: string, request: AuthCodeRequest): void {
-    this.logger.trace("initiateAuthRequest called", request.correlationId);
-
-    window.location.assign(navigateUrl);
   }
 
   protected cleanStoreForAuthRequest(): void {
@@ -219,7 +206,6 @@ export abstract class BaseAuth implements Auth {
 
   updateStoreWithTokenResponse(tokenResponse: TokenResponse) {
     this.logger.trace("updateStoreWithTokenResponse called");
-
     const expiresAtUtc: Date = addSecondsToCurrentDateTime(tokenResponse.expiresIn ?? 0);
     const tokenKeys: TokenKeys = {
       authority: this.authority,
@@ -235,7 +221,6 @@ export abstract class BaseAuth implements Auth {
 
   protected parseCommonResponseUrlParams(): BaseResponse {
     this.logger.trace("parseCommonResponseUrlParams called");
-
     const response: AuthCodeResponse = {};
 
     const searchParams = new URLSearchParams(location.search);
@@ -256,7 +241,6 @@ export abstract class BaseAuth implements Auth {
 
   protected parseAuthCodeResponse(): AuthCodeResponse {
     this.logger.trace("parseAuthCodeResponseUrlParams called");
-
     const searchParams = new URLSearchParams(location.search);
     const baseResponse: BaseResponse = this.parseCommonResponseUrlParams();
     const authCodeResponse: AuthCodeResponse = {
@@ -270,7 +254,6 @@ export abstract class BaseAuth implements Auth {
 
   protected validateBaseResponse(response: BaseResponse): void {
     this.logger.trace("validateBaseResponse called");
-
     // Implement throtling logic here, see checkResponseStatus and checkResponseForRetryAfter in msal-browser
     if ((response.errorDescription || (response.errorCodes && response.errorCodes.length > 0)) && !response.error)
       response.error = "invalid_request";
@@ -278,7 +261,6 @@ export abstract class BaseAuth implements Auth {
 
   protected validateAuthCodeResponse(response: AuthCodeResponse): void {
     this.logger.trace("validateAuthCodeResponse called");
-
     this.validateBaseResponse(response);
 
     if (response.error) return;
@@ -315,7 +297,6 @@ export abstract class BaseAuth implements Auth {
 
   async exchangeAuthCodeForToken(authCodeResponse: AuthCodeResponse): Promise<TokenResponse> {
     this.logger.verbose("exchangeAuthCodeForToken called");
-
     const queryString: string = this.getTokenQueryString(authCodeResponse);
     const headers: HeadersInit = {
       [HeaderName.CONTENT_TYPE]: ContentType.URL_FORM_CONTENT_TYPE,
@@ -338,7 +319,6 @@ export abstract class BaseAuth implements Auth {
 
   protected parseTokenResponse(tokenResponseJson: string): TokenResponse {
     this.logger.trace("parseTokenResponse called");
-
     const parsedResponse: Record<string, unknown> = JSON.parse(tokenResponseJson);
     const tokenResponse: TokenResponse = {} as TokenResponse;
 
