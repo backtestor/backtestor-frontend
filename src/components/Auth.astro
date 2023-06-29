@@ -1,13 +1,11 @@
 ---
-import PMenu from "@components/generic/PMenu.astro";
-import PSvg from "@components/generic/PSvg.astro";
+import PMenu from "@src/components/generic/PMenu.astro";
+import PSvg from "@src/components/generic/PSvg.astro";
 import { addTrailingSlash } from "@src/i18n";
-import { AstroInstance } from "astro";
 import { localizePath } from "astro-i18next";
 import i18next, { t } from "i18next";
 
 const { language } = i18next;
-const [signin] = (await Astro.glob("@pages/signin.astro")) as [AstroInstance];
 ---
 
 <!-- Auth Component -->
@@ -15,7 +13,7 @@ const [signin] = (await Astro.glob("@pages/signin.astro")) as [AstroInstance];
   class="btn btn-outline"
   id="sign-in-button"
   type="button"
-  href=`${addTrailingSlash(localizePath(signin.url, language))}?return=${addTrailingSlash(Astro.url.pathname)}`
+  href=`${addTrailingSlash(localizePath("/signin", language))}?return=${addTrailingSlash(Astro.url.pathname)}`
   >{t("components.auth.sign-in")}</a
 >
 <PMenu>
@@ -39,7 +37,7 @@ const [signin] = (await Astro.glob("@pages/signin.astro")) as [AstroInstance];
 </PMenu>
 
 <script>
-  import { AppStore, appStore } from "@services/stores/appStore";
+  import { AppStore, appStore } from "@src/services/stores/appStore";
 
   const headerComponent = "headerComponent";
 

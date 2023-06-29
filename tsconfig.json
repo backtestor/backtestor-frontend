@@ -16,14 +16,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"],
-      "@assets/*": ["src/assets/*"],
-      "@components/*": ["src/components/*"],
-      "@i18n/*": ["src/i18n/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@pages/*": ["src/pages/*"],
-      "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"]
+      "@src/*": ["src/*"]
     },
     "types": ["astro/client"],
     "allowJs": true,

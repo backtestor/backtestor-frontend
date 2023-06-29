@@ -1,5 +1,5 @@
 ---
-import PSvg from "@components/generic/PSvg.astro";
+import PSvg from "@src/components/generic/PSvg.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -16,9 +16,9 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { Auth, AuthOptions, BaseResponse, TokenResponse } from "@services/auth";
-import { defineMsaAuth, defineMsaAuthOptions } from "@services/auth/msaAuth";
-import { Logger, defineConsoleLogger } from "@src/services/logger";
+  import { Auth, AuthOptions, BaseResponse, TokenResponse } from "@src/services/auth";
+  import { defineMsaAuth, defineMsaAuthOptions } from "@src/services/auth/msaAuth";
+  import { Logger, defineConsoleLogger } from "@src/services/logger";
 
   const pageHeader = document.getElementById("page-header") as HTMLElement;
   const errorHeader = document.getElementById("error-header") as HTMLElement;

@@ -1,5 +1,5 @@
 ---
-import PSvg from "@components/generic/PSvg.astro";
+import PSvg from "@src/components/generic/PSvg.astro";
 import { changeLanguage, t } from "i18next";
 import { Trans } from "astro-i18next/components";
 
@@ -17,9 +17,9 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { Auth, AuthCodeRequest, AuthOptions, defineAuthCodeRequest } from "@services/auth";
-  import { defineMsaAuth, defineMsaAuthOptions } from "@services/auth/msaAuth";
-  import { Logger, defineConsoleLogger } from "@services/logger";
+  import { Auth, AuthCodeRequest, AuthOptions, defineAuthCodeRequest } from "@src/services/auth";
+  import { defineMsaAuth, defineMsaAuthOptions } from "@src/services/auth/msaAuth";
+  import { Logger, defineConsoleLogger } from "@src/services/logger";
 
   const signInButton = document.getElementById("signin-button-msa") as HTMLElement;
 

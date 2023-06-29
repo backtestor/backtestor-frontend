@@ -1,5 +1,5 @@
 ---
-import PSvg from "@components/generic/PSvg.astro";
+import PSvg from "@src/components/generic/PSvg.astro";
 import { addTrailingSlash } from "@src/i18n";
 import { localizePath } from "astro-i18next";
 import { t } from "i18next";
@@ -22,7 +22,7 @@ import Auth from "./Auth.astro";
 </nav>
 
 <script>
-  import { AppStore, appStore } from "@services/stores/appStore";
+  import { AppStore, appStore } from "@src/services/stores/appStore";
 
   const headerComponent = "headerComponent";
 

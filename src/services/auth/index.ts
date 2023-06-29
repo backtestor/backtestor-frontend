@@ -1,6 +1,6 @@
-import { Logger, defineNullLogger } from "@services/logger";
-import { encode } from "@utils/base64";
-import { generateGuid } from "@utils/uuid";
+import { Logger, defineNullLogger } from "@src/services/logger";
+import { encode } from "@src/utils/base64";
+import { generateGuid } from "@src/utils/uuid";
 import { authLocalStore, authSessionStore } from "./authStore";
 import { preflightBrowserEnvironmentCheck } from "./browser";
 import { generatePkceCodes } from "./pkce";

@@ -1,4 +1,4 @@
-import { urlEncodeArr } from "@utils/base64";
+import { urlEncodeArr } from "@src/utils/base64";
 import { PkceCodes } from ".";
 
 const RANDOM_BYTE_ARR_LENGTH = 32;

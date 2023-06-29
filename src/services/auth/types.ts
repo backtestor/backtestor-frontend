@@ -1,4 +1,4 @@
-import { Logger } from "@services/logger";
+import { Logger } from "@src/services/logger";
 
 export const AuthConstants = {
   POPUP_NAME_PREFIX: "auth",
