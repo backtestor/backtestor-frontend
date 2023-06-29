@@ -76,18 +76,7 @@
     "max-statements": "off",
     "multiline-ternary": ["error", "always-multiline"],
     "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 4 }],
-    "no-extra-parens": [
-      "error",
-      "all",
-      {
-        "conditionalAssign": false,
-        "enforceForArrowConditionals": false,
-        "enforceForFunctionPrototypeMethods": false,
-        "ignoreJSX": "all",
-        "nestedBinaryExpressions": false,
-        "returnAssign": false
-      }
-    ],
+    "no-extra-parens": ["off"],
     "no-magic-numbers": "off",
     "no-ternary": "off",
     "no-undef": "off",

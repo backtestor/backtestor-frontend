@@ -5,6 +5,13 @@
     "description": "Backtestor is designed with 💖, meaning that it was created with care and attention to detail by developers who are passionate about what they do."
   },
   "components": {
+    "auth": {
+      "signin": {
+        "header": "Sign in to <0>$t(app.title-short)</0>",
+        "signin-msa": "Sign in with Microsoft"
+      },
+      "sign-in": "Sign In"
+    },
     "header": {
       "navigation-target": "Site",
       "filtering": "Filtering",
@@ -16,19 +23,14 @@
     },
     "language-selector": {
       "language-menu": "Language Options"
-    },
-    "auth": {
-      "sign-in": "Sign In"
     }
   },
-  "layouts": {
-    "base-layout": {}
-  },
+  "layouts": {},
   "pages": {
     "index": {
-      "title": "Backtestor",
+      "title": "$t(app.title-short)",
       "description": "Make smarter decisions with our backtesting tool.",
-      "header": "???"
+      "header": "Welcome to <0>$t(app.title-short)</0>"
     },
     "auth-response": {
       "title": "Authentication Callback",
@@ -37,10 +39,8 @@
       "error": "Authentication failed"
     },
     "signin": {
-      "title": "Sign in to Backtestor",
-      "description": "Sign in to Backtestor and access your account. Analyze historical data, evaluate strategies, and make smarter decisions.",
-      "header": "Sign in to Backtestor",
-      "sign-in-msa": "Sign in with Microsoft"
+      "title": "Sign in to $t(app.title-short)",
+      "description": "Sign in to $t(app.title-short) and access your account. Analyze historical data, evaluate strategies, and make smarter decisions."
     },
     "404": {
       "title": "Page not found - Error 404",

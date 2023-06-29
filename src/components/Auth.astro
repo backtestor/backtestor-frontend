@@ -1,11 +1,23 @@
 ---
 import PMenu from "@components/generic/PMenu.astro";
 import PSvg from "@components/generic/PSvg.astro";
-import { t } from "i18next";
+import { addTrailingSlash } from "@src/i18n";
+import { AstroInstance } from "astro";
+import { localizePath } from "astro-i18next";
+import i18next, { t } from "i18next";
+
+const { language } = i18next;
+const [signin] = (await Astro.glob("@pages/signin.astro")) as [AstroInstance];
 ---
 
 <!-- Auth Component -->
-<button class="btn btn-outline" id="sign-in-button" type="button">{t("components.auth.sign-in")}</button>
+<a
+  class="btn btn-outline"
+  id="sign-in-button"
+  type="button"
+  href=`${addTrailingSlash(localizePath(signin.url, language))}?return=${addTrailingSlash(Astro.url.pathname)}`
+  >{t("components.auth.sign-in")}</a
+>
 <PMenu>
   <button
     slot="menu-heading"
@@ -27,28 +39,9 @@ import { t } from "i18next";
 </PMenu>
 
 <script>
-  import { AuthOptions } from "@services/auth/auth";
-  import { AuthConstants } from "@services/auth/constants";
-  import { defineMsaAuth, msaAuthOptions } from "@services/auth/msaAuth";
-  import { LogLevel, defineConsoleLogger, mapStringToLogLevel } from "@services/logger/logger";
   import { AppStore, appStore } from "@services/stores/appStore";
 
   const headerComponent = "headerComponent";
-  const signInButton = document.getElementById("sign-in-button") as HTMLElement;
-
-  const loggerLevelString: string = import.meta.env.PUBLIC_LOG_LEVEL;
-  const loggerLevel: LogLevel = mapStringToLogLevel(loggerLevelString);
-  const logger = defineConsoleLogger(loggerLevel, AuthConstants.PACKAGE_NAME);
-
-  // Functions
-  const signInMsa = function signInMsa(): void {
-    const options: AuthOptions = {
-      ...msaAuthOptions,
-      logger: logger,
-    };
-    const auth = defineMsaAuth(options);
-    auth.getAuthCode();
-  };
 
   // Elements Update
   const updateAuthElements = function updateSpeedLimitElements(): void {
@@ -67,12 +60,6 @@ import { t } from "i18next";
   // State Update
 
   // Events
-  const onClickSignInMsa = function onClickSignInMsa(event: Event): void {
-    if (!event.currentTarget) return;
-
-    signInMsa();
-  };
-
   const onChangeAppStore = function onChangeAppStore(
     key: keyof AppStore,
     value: AppStore[keyof AppStore] | undefined,
@@ -89,8 +76,6 @@ import { t } from "i18next";
   // Init
   initView();
   updateAuthElements();
-
-  signInButton.addEventListener("click", onClickSignInMsa, { passive: true });
 
   appStore.listen(onChangeAppStore);
 </script>

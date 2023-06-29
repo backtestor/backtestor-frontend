@@ -125,9 +125,9 @@ export abstract class BaseAuth implements Auth {
 
   initializeAuthCodeRequest(request: AuthCodeRequest, interactionType: InteractionType): AuthCodeRequest {
     this.logger.trace("initializeAuthCodeRequest called", request.correlationId);
-    const stateObject: StateObject = this.setState(request.correlationId ?? generateGuid(), interactionType);
+    const stateObject: StateObject = this.setState(request, interactionType);
 
-    const scopeSet = new Set([...request.scope, ...OIDC_DEFAULT_SCOPES]);
+    const scopeSet = new Set([...(request.scope ?? []), ...OIDC_DEFAULT_SCOPES]);
     const scopeArray: string[] = Array.from(scopeSet);
 
     const initializedAuthCodeRequest: AuthCodeRequest = {
@@ -142,14 +142,15 @@ export abstract class BaseAuth implements Auth {
     return initializedAuthCodeRequest;
   }
 
-  setState(correlationId: string, interactionType: InteractionType, meta?: Record<string, string>): StateObject {
+  setState(request: AuthCodeRequest, interactionType: InteractionType, meta?: Record<string, string>): StateObject {
     this.logger.trace("setState called");
     const stateObject: StateObject = {
-      correlationId,
+      correlationId: request.correlationId ?? generateGuid(),
       interactionType,
     };
 
-    if (interactionType === InteractionType.REDIRECT) stateObject.redirectStartPage = window.location.href;
+    if (interactionType === InteractionType.REDIRECT)
+      stateObject.redirectStartPage = request.redirectStartPage ?? window.location.href;
     if (meta) stateObject.meta = meta;
 
     const stateString: string = JSON.stringify(stateObject);

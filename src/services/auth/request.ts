@@ -6,10 +6,11 @@ export interface BaseRequest {
 }
 
 export interface BaseAuthRequest extends BaseRequest {
-  scope: string[];
+  scope?: string[] | undefined;
 }
 
 export interface AuthCodeRequest extends BaseAuthRequest {
+  redirectStartPage?: string | undefined;
   responseType?: ResponseType | undefined;
   responseMode?: ResponseMode | undefined;
   stateObject?: StateObject | undefined;

@@ -37,7 +37,8 @@ const { defaultLocale } = AstroI18next.config;
 
 <title>{title ?? t("app.title")}</title>
 <meta name="description" content={description ?? t("app.description")} />
-<meta name="application-name" content={t("app.title")} />
+<meta name="application-name" content={t("app.title-short")} />
+<meta name="application-description" content={t("app.description")} />
 <meta name="keywords" content="???" />
 
 <meta property="og:title" content={title ?? t("app.title")} />

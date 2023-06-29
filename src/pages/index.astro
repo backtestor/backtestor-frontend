@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
+import { Trans } from "astro-i18next/components";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -10,6 +11,10 @@ const description = t("pages.index.description");
 
 <BaseLayout title={title} description={description}>
   <header class="flex flex-col items-center justify-center">
-    <h1>{t("pages.index.header")}</h1>
+    <h1>
+      <Trans i18nKey="pages.index.header">
+        Welcome to <span class="philosopher">Backtestor</span>
+      </Trans>
+    </h1>
   </header>
-</BaseLayout>;
+</BaseLayout>

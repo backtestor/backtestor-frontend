@@ -1,0 +1,58 @@
+---
+import PSvg from "@components/generic/PSvg.astro";
+import { changeLanguage, t } from "i18next";
+import { Trans } from "astro-i18next/components";
+
+changeLanguage("en");
+---
+
+<header class="flex flex-col items-center justify-center">
+  <PSvg name="bt" svgClass="h-40" />
+  <h1>
+    <Trans i18nKey="components.auth.signin.header">
+      Sign in to <span class="philosopher">Backtestor</span>
+    </Trans>
+  </h1>
+  <button class="btn btn-outline" id="signin-button-msa" type="button">{t("components.auth.signin.signin-msa")}</button>
+</header>
+
+<script>
+  import { AuthOptions } from "@services/auth/auth";
+  import { AuthConstants } from "@services/auth/constants";
+  import { defineMsaAuth, msaAuthOptions } from "@services/auth/msaAuth";
+  import { LogLevel, defineConsoleLogger, mapStringToLogLevel } from "@services/logger/logger";
+  import { AuthCodeRequest } from "@src/services/auth/request";
+
+  const signInButton = document.getElementById("signin-button-msa") as HTMLElement;
+
+  const loggerLevelString: string = import.meta.env.PUBLIC_LOG_LEVEL;
+  const loggerLevel: LogLevel = mapStringToLogLevel(loggerLevelString);
+  const logger = defineConsoleLogger(loggerLevel, AuthConstants.PACKAGE_NAME);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const returnUrl: string = urlParams.get("return") ?? "/";
+
+  // Functions
+  const signInMsa = function signInMsa(): void {
+    const options: AuthOptions = {
+      ...msaAuthOptions,
+      logger: logger,
+    };
+    const auth = defineMsaAuth(options);
+
+    const request: AuthCodeRequest = {
+      redirectStartPage: returnUrl,
+    };
+    auth.getAuthCode(request);
+  };
+
+  // Events
+  const onClickSignInMsa = function onClickSignInMsa(event: Event): void {
+    if (!event.currentTarget) return;
+
+    signInMsa();
+  };
+
+  // Init
+  signInButton.addEventListener("click", onClickSignInMsa, { passive: true });
+</script>

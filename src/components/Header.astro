@@ -9,10 +9,10 @@ import Auth from "./Auth.astro";
 <!-- Header -->
 <nav class="flex h-10 w-full justify-between">
   <div class="flex flex-1">
-    <a class="btn btn-ghost btn-square" href={addTrailingSlash(localizePath("/"))} title="Home Page">
-      <PSvg name="bt" svgClass="h-10" />
-    </a>
     <div class="flex items-center gap-2">
+      <a class="btn btn-ghost btn-square" href={addTrailingSlash(localizePath("/"))} title="Home Page">
+        <PSvg name="bt" svgClass="h-10" />
+      </a>
       <a href={addTrailingSlash(localizePath("/"))}><span class="philosopher">{t("app.title-short")}</span></a>
     </div>
   </div>
