@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 
-import { LogLevel, Logger, LoggerCallback, LoggerOptions } from ".";
+import { LogLevel, Logger, LoggerCallback, LoggerOptions } from "./types";
+
+export * from "./types";
 
 const mapStringToLogLevel = function mapStringToLogLevel(logLevelString: string): LogLevel {
   switch (logLevelString) {

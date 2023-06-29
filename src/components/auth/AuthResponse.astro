@@ -17,8 +17,8 @@ changeLanguage("en");
 
 <script>
   import { Auth, AuthOptions, BaseResponse, TokenResponse } from "@services/auth";
-  import { defineMsaAuth, defineMsaAuthOptions } from "@services/auth/msaAuth";
-  import { Logger, defineConsoleLogger } from "@services/logger";
+import { defineMsaAuth, defineMsaAuthOptions } from "@services/auth/msaAuth";
+import { Logger, defineConsoleLogger } from "@src/services/logger";
 
   const pageHeader = document.getElementById("page-header") as HTMLElement;
   const errorHeader = document.getElementById("error-header") as HTMLElement;

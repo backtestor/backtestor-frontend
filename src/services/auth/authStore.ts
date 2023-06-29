@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import { MapStore, StorageType, defineMapStore } from "@services/stores/mapStore";
+import { MapStore, StorageType, defineMapStore } from "@services/stores";
 import { PkceCodes, StateObject, TokenKeys } from ".";
 
 export type AuthLocalStore = {

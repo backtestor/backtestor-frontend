@@ -1,4 +1,4 @@
-import { AuthConstants, InteractionType } from "./constants";
+import { AuthConstants, InteractionType } from "./types";
 
 const IsBrowserEnvironment: boolean = typeof window !== "undefined";
 

@@ -1,7 +1,9 @@
-import { Logger } from "@services/logger";
-import { defineNullLogger } from "@services/logger/logger";
+import { Logger, defineNullLogger } from "@services/logger";
 import { encode } from "@utils/base64";
 import { generateGuid } from "@utils/uuid";
+import { authLocalStore, authSessionStore } from "./authStore";
+import { preflightBrowserEnvironmentCheck } from "./browser";
+import { generatePkceCodes } from "./pkce";
 import {
   Auth,
   AuthCodeRequest,
@@ -19,10 +21,9 @@ import {
   StateObject,
   TokenKeys,
   TokenResponse,
-} from ".";
-import { authLocalStore, authSessionStore } from "./authStore";
-import { preflightBrowserEnvironmentCheck } from "./browser";
-import { generatePkceCodes } from "./pkce";
+} from "./types";
+
+export * from "./types";
 
 export const defineAuthCodeRequest = function defineAuthCodeRequest(
   redirectStartPage?: string,

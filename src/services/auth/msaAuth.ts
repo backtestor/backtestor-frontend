@@ -1,6 +1,14 @@
 import { Logger } from "@services/logger";
-import { Auth, AuthCodeRequest, AuthCodeResponse, AuthOptions, GrantType, ResponseMode, ResponseType } from ".";
-import { BaseAuth } from "./auth";
+import {
+  Auth,
+  AuthCodeRequest,
+  AuthCodeResponse,
+  AuthOptions,
+  BaseAuth,
+  GrantType,
+  ResponseMode,
+  ResponseType,
+} from ".";
 import { authSessionStore } from "./authStore";
 
 const msaAuthOptions: AuthOptions = {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import { defineMapStore } from "@src/services/stores/mapStore";
+import { defineMapStore } from "@services/stores";
 
 export type AppStore = {
   jwtToken?: string | undefined;
