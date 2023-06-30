@@ -11,8 +11,9 @@
         "signin-msa": "Sign in with Microsoft"
       },
       "auth-response": {
-        "header": "Authenticating...",
-        "error": "Authentication failed"
+        "authenticating": "Authenticating...",
+        "authentication-succeed": "Authentication succeed!",
+        "authentication-failed": "Authentication failed!"
       },
       "sign-in": "Sign In"
     },
@@ -34,6 +35,7 @@
     "index": {
       "title": "$t(app.title-short)",
       "description": "Make smarter decisions with our backtesting tool.",
+      "tooltip": "Homepage - $t(app.title-short)",
       "header": "Welcome to <0>$t(app.title-short)</0>"
     },
     "auth-response": {

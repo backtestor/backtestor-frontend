@@ -111,7 +111,7 @@ export interface TokenKeys {
 export interface BaseResponse {
   error?: string | null;
   errorDescription?: string | null;
-  errorCodes?: string[] | null;
+  errorCode?: string | null;
   timestamp?: string | null;
   traceId?: string | null;
   correlationId?: string | null;

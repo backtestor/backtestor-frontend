@@ -10,7 +10,7 @@ import Auth from "./Auth.astro";
 <nav class="flex h-10 w-full justify-between">
   <div class="flex flex-1">
     <div class="flex items-center gap-2">
-      <a class="btn btn-ghost btn-square" href={addTrailingSlash(localizePath("/"))} title="Home Page">
+      <a class="btn btn-ghost btn-square" href={addTrailingSlash(localizePath("/"))} title={t("pages.index.tooltip")}>
         <PSvg name="bt" svgClass="h-10" />
       </a>
       <a href={addTrailingSlash(localizePath("/"))}><span class="philosopher">{t("app.title-short")}</span></a>
@@ -20,43 +20,3 @@ import Auth from "./Auth.astro";
     <Auth />
   </div>
 </nav>
-
-<script>
-  import { AppStore, appStore } from "@src/services/stores/appStore";
-
-  const headerComponent = "headerComponent";
-
-  // Elements Update
-  const updateLoginElements = function updateSpeedLimitElements(): void {
-    // Intended to be empty
-  };
-
-  // View Update
-  const initView = function initView(): void {
-    // Intended to be empty
-  };
-
-  const updateLoginView = function updateLoginView(_newKey: string): void {
-    // Intended to be empty
-  };
-
-  // Events
-  const onChangeAppStore = function onChangeAppStore(
-    key: keyof AppStore,
-    value: AppStore[keyof AppStore] | undefined,
-    source?: string,
-  ): void {
-    if (source === headerComponent || typeof value === "undefined") return;
-
-    if (key === "jwtToken") {
-      const newValue = value.toString();
-      updateLoginView(newValue);
-    }
-  };
-
-  // Init
-  initView();
-  updateLoginElements();
-
-  appStore.listen(onChangeAppStore);
-</script>

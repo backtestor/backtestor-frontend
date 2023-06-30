@@ -2,12 +2,16 @@
 import PSvg from "@src/components/generic/PSvg.astro";
 import { changeLanguage, t } from "i18next";
 import { Trans } from "astro-i18next/components";
+import { addTrailingSlash } from "@src/i18n";
+import { localizePath } from "astro-i18next";
 
 changeLanguage("en");
 ---
 
 <header class="flex flex-col items-center justify-center">
-  <PSvg name="bt" svgClass="h-40" />
+  <a href={addTrailingSlash(localizePath("/"))} title={t("pages.index.tooltip")}>
+    <PSvg name="bt" svgClass="h-40" />
+  </a>
   <h1>
     <Trans i18nKey="components.auth.signin.header">
       Sign in to <span class="philosopher">Backtestor</span>

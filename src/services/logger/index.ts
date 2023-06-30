@@ -12,6 +12,8 @@ const mapStringToLogLevel = function mapStringToLogLevel(logLevelString: string)
       return LogLevel.WARNING;
     case "info":
       return LogLevel.INFO;
+    case "debug":
+      return LogLevel.DEBUG;
     case "verbose":
       return LogLevel.VERBOSE;
     case "trace":
@@ -25,8 +27,9 @@ const logLevelMapping: Record<LogLevel, number> = {
   error: 1,
   warning: 2,
   info: 3,
-  verbose: 4,
-  trace: 5,
+  debug: 4,
+  verbose: 5,
+  trace: 6,
 };
 
 const nullLoggerCallback: LoggerCallback = (): void => {
@@ -45,6 +48,9 @@ const consoleLoggerCallback: LoggerCallback = function consoleLoggerCallback(lev
       break;
     case LogLevel.INFO:
       console.info(logMessage);
+      break;
+    case LogLevel.DEBUG:
+      console.debug(logMessage);
       break;
     case LogLevel.VERBOSE:
       console.debug(logMessage);
@@ -87,6 +93,10 @@ class LoggerImpl implements Logger {
 
   info(message: string): void {
     this.logMessage(LogLevel.INFO, message);
+  }
+
+  debug(message: string): void {
+    this.logMessage(LogLevel.DEBUG, message);
   }
 
   verbose(message: string): void {

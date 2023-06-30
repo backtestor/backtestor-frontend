@@ -110,7 +110,8 @@ export abstract class BaseAuth implements Auth {
       this.updateStoreForAuthRequest(authCodeRequest);
 
       const navigateUrl: string = this.getAuthCodeUrl(authCodeRequest);
-      window.location.assign(navigateUrl);
+      this.logger.debug(`acquireToken: Navigating to: ${navigateUrl}`);
+      if (!authLocalStore.value.debugDoNotRedirectOnSignin) window.location.assign(navigateUrl);
     } catch (e) {
       this.cleanStoreForAuthRequest();
       throw e;
@@ -183,8 +184,8 @@ export abstract class BaseAuth implements Auth {
     const authCodeResponse: AuthCodeResponse = this.parseAuthCodeResponse();
     this.validateAuthCodeResponse(authCodeResponse);
 
-    this.logger.verbose(`${authCodeResponse.error ? "Error" : "Success"} handling auth code request`);
-    this.logger.verbose(JSON.stringify(authCodeResponse, null, 2));
+    if (authCodeResponse.error) this.logger.warning(JSON.stringify(authCodeResponse, null, 2));
+    else this.logger.debug(JSON.stringify(authCodeResponse, null, 2));
 
     if (authCodeResponse.error) {
       this.cleanStoreForAuthRequest();
@@ -205,7 +206,7 @@ export abstract class BaseAuth implements Auth {
     return tokenResponse;
   }
 
-  updateStoreWithTokenResponse(tokenResponse: TokenResponse) {
+  updateStoreWithTokenResponse(tokenResponse: TokenResponse): void {
     this.logger.trace("updateStoreWithTokenResponse called");
     const expiresAtUtc: Date = addSecondsToCurrentDateTime(tokenResponse.expiresIn ?? 0);
     const tokenKeys: TokenKeys = {
@@ -216,8 +217,6 @@ export abstract class BaseAuth implements Auth {
       expiresAtUtc,
     };
     authSessionStore.setKey("tokenKeys", tokenKeys);
-
-    authLocalStore.setKey("authority", this.authority);
   }
 
   protected parseCommonResponseUrlParams(): BaseResponse {
@@ -227,10 +226,7 @@ export abstract class BaseAuth implements Auth {
     const searchParams = new URLSearchParams(location.search);
     response.error = decodeParamValue(searchParams, "error");
     response.errorDescription = decodeParamValue(searchParams, "error_description");
-
-    const errorCodes: string | null = decodeParamValue(searchParams, "error_codes");
-    // eslint-disable-next-line no-nested-ternary
-    response.errorCodes = Array.isArray(errorCodes) ? errorCodes : errorCodes ? [errorCodes] : null;
+    response.errorCode = decodeParamValue(searchParams, "error_codes");
 
     response.timestamp = decodeParamValue(searchParams, "timestamp") ?? getCurrentUTCTimestamp();
     response.traceId = decodeParamValue(searchParams, "trace_id");
@@ -256,8 +252,7 @@ export abstract class BaseAuth implements Auth {
   protected validateBaseResponse(response: BaseResponse): void {
     this.logger.trace("validateBaseResponse called");
     // Implement throtling logic here, see checkResponseStatus and checkResponseForRetryAfter in msal-browser
-    if ((response.errorDescription || (response.errorCodes && response.errorCodes.length > 0)) && !response.error)
-      response.error = "invalid_request";
+    if ((response.errorDescription || response.errorCode) && !response.error) response.error = "invalid_request";
   }
 
   protected validateAuthCodeResponse(response: AuthCodeResponse): void {
@@ -303,19 +298,54 @@ export abstract class BaseAuth implements Auth {
       [HeaderName.CONTENT_TYPE]: ContentType.URL_FORM_CONTENT_TYPE,
     };
 
-    const response = await fetch(this.tokenEndpoint, {
-      method: "POST",
-      headers,
-      body: queryString,
-    });
+    try {
+      const response = await fetch(this.tokenEndpoint, {
+        method: "POST",
+        headers,
+        body: queryString,
+      });
 
-    const tokenResponseJson: string = JSON.stringify(await response.json());
-    const tokenResponse: TokenResponse = this.parseTokenResponse(tokenResponseJson);
+      if (!response.ok) {
+        const errorResponse: BaseResponse = this.parseErrorResponse("request_failed", response);
+        return errorResponse;
+      }
 
-    this.logger.verbose(`${tokenResponse.error ? "Error" : "Success"} handling token request`);
-    this.logger.verbose(JSON.stringify(tokenResponse, null, 2));
+      const tokenResponseJson: string = JSON.stringify(await response.json());
+      const tokenResponse: TokenResponse = this.parseTokenResponse(tokenResponseJson);
 
-    return tokenResponse;
+      if (authCodeResponse.error) this.logger.warning(JSON.stringify(tokenResponse, null, 2));
+      else this.logger.debug(JSON.stringify(tokenResponse, null, 2));
+
+      return tokenResponse;
+    } catch (error) {
+      const err = error as Error | null;
+      const errorResponse: BaseResponse = this.parseError("request_error", err);
+      return errorResponse;
+    }
+  }
+
+  protected parseError(errorCode: string, error: Error | null): BaseResponse {
+    this.logger.trace("parseError called");
+    const errorResponse: BaseResponse = {
+      error: errorCode,
+      errorDescription: error?.message ?? "Unknown error",
+      errorCode: error?.name ?? "Unknown",
+      timestamp: getCurrentUTCTimestamp(),
+    };
+    this.logger.warning(JSON.stringify(errorResponse, null, 2));
+    return errorResponse;
+  }
+
+  protected parseErrorResponse(errorCode: string, response: Response): BaseResponse {
+    this.logger.trace("parseErrorResponse called");
+    const errorResponse: BaseResponse = {
+      error: errorCode,
+      errorDescription: response.statusText,
+      errorCode: response.status.toString(),
+      timestamp: getCurrentUTCTimestamp(),
+    };
+    this.logger.warning(JSON.stringify(errorResponse, null, 2));
+    return errorResponse;
   }
 
   protected parseTokenResponse(tokenResponseJson: string): TokenResponse {
@@ -326,8 +356,7 @@ export abstract class BaseAuth implements Auth {
     if (Object.hasOwn(parsedResponse, "error")) tokenResponse.error = parsedResponse["error"] as string;
     if (Object.hasOwn(parsedResponse, "error_description"))
       tokenResponse.errorDescription = parsedResponse["error_description"] as string;
-    if (Object.hasOwn(parsedResponse, "error_codes"))
-      tokenResponse.errorCodes = parsedResponse["error_codes"] as string[];
+    if (Object.hasOwn(parsedResponse, "error_codes")) tokenResponse.errorCode = parsedResponse["error_codes"] as string;
     if (Object.hasOwn(parsedResponse, "timestamp")) tokenResponse.timestamp = parsedResponse["timestamp"] as string;
     else tokenResponse.timestamp = getCurrentUTCTimestamp();
     if (Object.hasOwn(parsedResponse, "trace_id")) tokenResponse.traceId = parsedResponse["trace_id"] as string;

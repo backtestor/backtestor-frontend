@@ -3,11 +3,13 @@ import { MapStore, StorageType, defineMapStore } from "@src/services/stores";
 import { PkceCodes, StateObject, TokenKeys } from ".";
 
 export type AuthLocalStore = {
-  authority: string;
+  debugDoNotRedirectOnSignin: boolean;
+  debugDoNotRedirectAfterSigninCallback: boolean;
 };
 
 const initialLocalValue: AuthLocalStore = {
-  authority: "",
+  debugDoNotRedirectOnSignin: false,
+  debugDoNotRedirectAfterSigninCallback: false,
 };
 
 export type AuthSessionStore = {

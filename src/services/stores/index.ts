@@ -2,13 +2,18 @@ export const StorageType = {
   LOCAL_STORAGE: "local_storage",
   SESSION_STORAGE: "session_storage",
 } as const;
+
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
+
+export type ChangeSource = string;
+
+export const STORAGE_CHANGE_SOURCE = "Storage";
 
 export interface MapStore<T extends Record<string, unknown>> {
   value: T;
-  setKey(key: keyof T, value: T[keyof T] | undefined, source?: string): void;
-  deleteKey(key: keyof T, source?: string): void;
-  listen(listener: (key: keyof T, value: T[keyof T] | undefined, source?: string) => void): void;
+  setKey(key: keyof T, value: T[keyof T] | undefined, changeSource?: ChangeSource): void;
+  deleteKey(key: keyof T, changeSource?: ChangeSource): void;
+  listen(listener: (key: keyof T, value: T[keyof T] | undefined, changeSource?: ChangeSource) => void): void;
 }
 
 class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
@@ -20,7 +25,7 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
 
   prefix: string;
 
-  listeners: ((key: keyof T, value: T[keyof T] | undefined, source?: string) => void)[] = [];
+  listeners: ((key: keyof T, value: T[keyof T] | undefined, changeSource?: ChangeSource) => void)[] = [];
 
   constructor(value: T, prefix: string, storageType?: StorageType) {
     this.storage = storageType === StorageType.LOCAL_STORAGE ? localStorage : sessionStorage;
@@ -31,93 +36,98 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
 
     for (const key in this.initialValue)
       if (Object.hasOwn(this.value, key)) {
-        const storageKey = this.getStorageKey(key);
-        const storageValue = this.storage.getItem(storageKey);
-        let propertyValue = this.initialValue[key];
+        const storageKey: string = this.getStorageKey(key);
+        const storageValue: string | null = this.storage.getItem(storageKey);
+        let propertyValue: T[Extract<keyof T, string>] = this.initialValue[key];
         if (storageValue !== null)
           if (typeof propertyValue === "string") propertyValue = storageValue as T[Extract<keyof T, string>];
           else if (typeof propertyValue === "number")
             propertyValue = Number(storageValue) as T[Extract<keyof T, string>];
           else if (typeof propertyValue === "boolean")
-            propertyValue = Boolean(storageValue) as T[Extract<keyof T, string>];
+            propertyValue = (storageValue.toLowerCase() === "true") as T[Extract<keyof T, string>];
           else propertyValue = JSON.parse(storageValue) as typeof propertyValue;
 
         this.value[key] = propertyValue;
       }
 
-    window.addEventListener("storage", this.listener);
+    window.addEventListener("storage", this.storageListener);
   }
 
-  notify(key: keyof T, source?: string): void {
+  notify(key: keyof T, changeSource?: ChangeSource): void {
     this.listeners.forEach((listener): void => {
-      const value = this.value[key];
-      listener(key, value, source);
+      const value: T[keyof T] = this.value[key];
+      listener(key, value, changeSource);
     });
   }
 
-  deleteKey(key: keyof T, source?: string): void {
+  deleteKey(key: keyof T, changeSource?: ChangeSource): void {
     if (typeof key === "number" || typeof key === "symbol") return;
 
-    const storageKey = this.getStorageKey(key);
+    const storageKey: string = this.getStorageKey(key);
 
     if (key in this.value) {
       this.value = { ...this.value };
       delete this.value[key];
-      this.storage.removeItem(storageKey);
-      this.notify(key, source);
+      if (changeSource !== STORAGE_CHANGE_SOURCE) this.storage.removeItem(storageKey);
+      this.notify(key, changeSource);
     }
   }
 
-  setKey(key: keyof T, value: T[keyof T] | undefined, source?: string): void {
+  setKey(key: keyof T, value: T[keyof T] | undefined, changeSource?: ChangeSource): void {
     if (typeof key === "number" || typeof key === "symbol") return;
 
-    const storageKey = this.getStorageKey(key);
+    const storageKey: string = this.getStorageKey(key);
 
-    if (typeof value === "undefined") this.deleteKey(key, source);
+    if (typeof value === "undefined") this.deleteKey(key, changeSource);
     else {
       this.value = {
         ...this.value,
         [key]: value,
       };
-      if (typeof value === "string") this.storage.setItem(storageKey, value);
-      else this.storage.setItem(storageKey, JSON.stringify(value));
-      this.notify(key, source);
+      if (changeSource !== STORAGE_CHANGE_SOURCE)
+        if (typeof value === "string") this.storage.setItem(storageKey, value);
+        else this.storage.setItem(storageKey, JSON.stringify(value));
+      this.notify(key, changeSource);
     }
   }
 
-  listen(listener: (key: keyof T, value: T[keyof T] | undefined, source?: string) => void): void {
+  listen(listener: (key: keyof T, value: T[keyof T] | undefined, changeSource?: ChangeSource) => void): void {
     this.listeners.push(listener);
   }
 
-  listener = (event: StorageEvent) => {
+  storageListener = (event: StorageEvent): void => {
     if (!event.key?.startsWith(this.prefix)) return;
 
-    const key = this.getPropertyKey(event.key);
+    const key: string = this.getPropertyKey(event.key);
 
     if (Object.hasOwn(this.value, key)) {
-      const storageValue = event.newValue;
-      let propertyValue = this.value[key] as T[keyof T];
-      if (storageValue === null) this.setKey(key, undefined, "Storage");
+      const storageValue: string | null = event.newValue;
+      let propertyValue: T[keyof T] = this.value[key] as T[keyof T];
+      if (storageValue === null) this.setKey(key, undefined, STORAGE_CHANGE_SOURCE);
       else if (typeof propertyValue === "string") propertyValue = storageValue as T[keyof T];
       else if (typeof propertyValue === "number") propertyValue = Number(storageValue) as T[keyof T];
-      else if (typeof propertyValue === "boolean") propertyValue = Boolean(storageValue) as T[keyof T];
+      else if (typeof propertyValue === "boolean")
+        propertyValue = (storageValue.toLowerCase() === "true") as T[keyof T];
       else propertyValue = JSON.parse(storageValue) as typeof propertyValue;
 
-      this.setKey(key, propertyValue, "storage");
+      this.setKey(key, propertyValue, STORAGE_CHANGE_SOURCE);
     }
   };
 
   getStorageKey(propertyKey: string): string {
     // Camel case to kebab case
-    const kebabKey = propertyKey.replace(/[A-Z]+(?![a-z])|[A-Z]/gu, ($, ofs) => (ofs ? "-" : "") + $.toLowerCase());
+    const kebabKey: string = propertyKey.replace(
+      /[A-Z]+(?![a-z])|[A-Z]/gu,
+      ($, ofs): string => (ofs ? "-" : "") + $.toLowerCase(),
+    );
     const storageKey = `${this.prefix}${kebabKey}`;
     return storageKey;
   }
 
   getPropertyKey(storageKey: string): string {
-    const key = storageKey.slice(this.prefix.length);
+    const key: string = storageKey.slice(this.prefix.length);
     // Kebab case to camel case
-    const propertyKey = key.replace(/-./gu, (x) => (x[1] ?? "").toUpperCase());
+    const propertyKey: string = key.replace(/-./gu, (x): string => (x[1] ?? "").toUpperCase());
     return propertyKey;
   }
 }

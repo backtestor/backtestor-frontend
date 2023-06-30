@@ -37,7 +37,7 @@ const { language } = i18next;
 </PMenu>
 
 <script>
-  import { AppStore, appStore } from "@src/services/stores/appStore";
+  import { AuthLocalStore, authLocalStore } from "@src/services/auth/authStore";
 
   const headerComponent = "headerComponent";
 
@@ -59,13 +59,13 @@ const { language } = i18next;
 
   // Events
   const onChangeAppStore = function onChangeAppStore(
-    key: keyof AppStore,
-    value: AppStore[keyof AppStore] | undefined,
+    key: keyof AuthLocalStore,
+    value: AuthLocalStore[keyof AuthLocalStore] | undefined,
     source?: string,
   ): void {
     if (source === headerComponent || typeof value === "undefined") return;
 
-    if (key === "jwtToken") {
+    if (key === "debugDoNotRedirectAfterSigninCallback") {
       const newValue: string = value.toString();
       updateLoginView(newValue);
     }
@@ -75,5 +75,5 @@ const { language } = i18next;
   initView();
   updateAuthElements();
 
-  appStore.listen(onChangeAppStore);
+  authLocalStore.listen(onChangeAppStore);
 </script>

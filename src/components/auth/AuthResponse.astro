@@ -1,27 +1,36 @@
 ---
 import PSvg from "@src/components/generic/PSvg.astro";
 import { changeLanguage, t } from "i18next";
+import { addTrailingSlash } from "@src/i18n";
+import { localizePath } from "astro-i18next";
 
 changeLanguage("en");
 ---
 
 <header class="flex flex-col items-center justify-center">
-  <PSvg name="bt" svgClass="h-40" />
-  <h1 id="page-header">{t("components.auth.auth-response.header")}</h1>
-  <h1 id="error-header" hidden>{t("components.auth.auth-response.error")}</h1>
-  <p id="error-code" hidden>.</p>
-  <p id="error-description" hidden>.</p>
-  <p id="timestamp" hidden>.</p>
-  <p id="correlation-id" hidden>.</p>
+  <a href={addTrailingSlash(localizePath("/"))} title={t("pages.index.tooltip")}>
+    <PSvg name="bt" svgClass="h-40" />
+  </a>
+  <h1 id="authenticating">{t("components.auth.auth-response.authenticating")}</h1>
+  <h1 id="authentication-succeed" hidden>{t("components.auth.auth-response.authentication-succeed")}</h1>
+  <h1 id="authentication-failed" hidden>{t("components.auth.auth-response.authentication-failed")}</h1>
+  <p id="error" hidden>...</p>
+  <p id="error-code" hidden>...</p>
+  <p id="error-description" hidden>...</p>
+  <p id="timestamp" hidden>...</p>
+  <p id="correlation-id" hidden>...</p>
 </header>
 
 <script>
   import { Auth, AuthOptions, BaseResponse, TokenResponse } from "@src/services/auth";
+  import { authLocalStore } from "@src/services/auth/authStore";
   import { defineMsaAuth, defineMsaAuthOptions } from "@src/services/auth/msaAuth";
   import { Logger, defineConsoleLogger } from "@src/services/logger";
 
-  const pageHeader = document.getElementById("page-header") as HTMLElement;
-  const errorHeader = document.getElementById("error-header") as HTMLElement;
+  const authenticating = document.getElementById("authenticating") as HTMLElement;
+  const authenticationSucceed = document.getElementById("authentication-succeed") as HTMLElement;
+  const authenticationFailed = document.getElementById("authentication-failed") as HTMLElement;
+  const error = document.getElementById("error") as HTMLElement;
   const errorCode = document.getElementById("error-code") as HTMLElement;
   const errorDescription = document.getElementById("error-description") as HTMLElement;
   const timestamp = document.getElementById("timestamp") as HTMLElement;
@@ -31,17 +40,21 @@ changeLanguage("en");
 
   // Functions
   const showError = function showError(response: BaseResponse): void {
-    logger.error(response.error ?? "");
-    errorCode.innerText = `${response.error}`;
+    authenticating.hidden = true;
+    authenticationSucceed.hidden = true;
+    authenticationFailed.hidden = false;
+
+    error.innerText = `${response.error}`;
+    errorCode.innerText = `${response.errorCode}`;
     errorDescription.innerText = `${response.errorDescription}`;
     timestamp.innerText = `${response.timestamp}`;
     correlationId.innerText = `${response.correlationId}`;
-    pageHeader.hidden = true;
-    errorCode.hidden = false;
-    errorHeader.hidden = false;
-    errorDescription.hidden = false;
-    timestamp.hidden = false;
-    correlationId.hidden = false;
+
+    error.hidden = typeof response.error !== "string";
+    errorCode.hidden = typeof response.errorCode !== "string";
+    errorDescription.hidden = typeof response.errorDescription !== "string";
+    timestamp.hidden = typeof response.timestamp !== "string";
+    correlationId.hidden = typeof response.correlationId !== "string";
   };
 
   const handleAuthRedirectResponse = async function handleAuthRedirectResponse(): Promise<void> {
@@ -54,8 +67,12 @@ changeLanguage("en");
       return;
     }
 
+    authenticating.hidden = true;
+    authenticationSucceed.hidden = false;
+    authenticationFailed.hidden = true;
+
     const tokenResponse: TokenResponse = response as TokenResponse;
-    if (tokenResponse && tokenResponse.stateObject && tokenResponse.stateObject.redirectStartPage)
+    if (tokenResponse?.stateObject?.redirectStartPage && !authLocalStore.value.debugDoNotRedirectAfterSigninCallback)
       window.location.assign(tokenResponse.stateObject.redirectStartPage);
   };
 
