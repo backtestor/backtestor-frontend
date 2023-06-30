@@ -22,10 +22,9 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { Auth, AuthOptions, BaseResponse, TokenResponse } from "@src/services/auth";
+  import { msaAuth } from "@src/services/app";
+  import { BaseResponse, TokenResponse } from "@src/services/auth";
   import { authLocalStore } from "@src/services/auth/authStore";
-  import { defineMsaAuth, defineMsaAuthOptions } from "@src/services/auth/msaAuth";
-  import { Logger, defineConsoleLogger } from "@src/services/logger";
 
   const authenticating = document.getElementById("authenticating") as HTMLElement;
   const authenticationSucceed = document.getElementById("authentication-succeed") as HTMLElement;
@@ -35,8 +34,6 @@ changeLanguage("en");
   const errorDescription = document.getElementById("error-description") as HTMLElement;
   const timestamp = document.getElementById("timestamp") as HTMLElement;
   const correlationId = document.getElementById("correlation-id") as HTMLElement;
-
-  const logger: Logger = defineConsoleLogger();
 
   // Functions
   const showError = function showError(response: BaseResponse): void {
@@ -58,10 +55,7 @@ changeLanguage("en");
   };
 
   const handleAuthRedirectResponse = async function handleAuthRedirectResponse(): Promise<void> {
-    const options: AuthOptions = defineMsaAuthOptions(logger);
-    const auth: Auth = defineMsaAuth(options);
-
-    const response: BaseResponse = await auth.handleAuthCodeResponse();
+    const response: BaseResponse = await msaAuth.handleAuthCodeResponse();
     if (response.error) {
       showError(response);
       return;

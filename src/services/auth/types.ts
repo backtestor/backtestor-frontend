@@ -2,15 +2,18 @@ import { Logger } from "@src/services/logger";
 
 export const AuthConstants = {
   POPUP_NAME_PREFIX: "auth",
+};
+
+export const Scope = {
   OPENID_SCOPE: "openid",
   PROFILE_SCOPE: "profile",
   OFFLINE_ACCESS_SCOPE: "offline_access",
   EMAIL_SCOPE: "email",
 };
 
-export const OIDC_DEFAULT_SCOPES: string[] = [AuthConstants.OPENID_SCOPE, AuthConstants.PROFILE_SCOPE];
+export const OIDC_DEFAULT_SCOPES: string[] = [Scope.OPENID_SCOPE, Scope.PROFILE_SCOPE];
 
-export const OIDC_SCOPES: string[] = [...OIDC_DEFAULT_SCOPES, AuthConstants.EMAIL_SCOPE];
+export const OIDC_SCOPES: string[] = [...OIDC_DEFAULT_SCOPES, Scope.EMAIL_SCOPE];
 
 export const InteractionType = {
   REDIRECT: "redirect",

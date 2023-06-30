@@ -1,4 +1,4 @@
-import { Logger, defineNullLogger } from "@src/services/logger";
+import { Logger, defineLogger } from "@src/services/logger";
 import { encode } from "@src/utils/base64";
 import { generateGuid } from "@src/utils/uuid";
 import { authLocalStore, authSessionStore } from "./authStore";
@@ -74,7 +74,7 @@ export abstract class BaseAuth implements Auth {
   endSessionEndpoint: string;
 
   constructor(options: AuthOptions) {
-    this.logger = options.logger ?? defineNullLogger();
+    this.logger = options.logger ?? defineLogger();
     this.clientId = options.clientId;
     this.redirectUri = options.redirectUri;
     this.postLogoutRedirectUri = options.postLogoutRedirectUri;

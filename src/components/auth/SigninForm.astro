@@ -21,23 +21,17 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { Auth, AuthCodeRequest, AuthOptions, defineAuthCodeRequest } from "@src/services/auth";
-  import { defineMsaAuth, defineMsaAuthOptions } from "@src/services/auth/msaAuth";
-  import { Logger, defineConsoleLogger } from "@src/services/logger";
+  import { msaAuth } from "@src/services/app";
+  import { defineAuthCodeRequest } from "@src/services/auth";
 
   const signInButton = document.getElementById("signin-button-msa") as HTMLElement;
 
-  const logger: Logger = defineConsoleLogger();
   const urlParams = new URLSearchParams(window.location.search);
   const returnUrl: string = urlParams.get("return") ?? "/";
 
   // Functions
   const signInMsa = function signInMsa(): void {
-    const options: AuthOptions = defineMsaAuthOptions(logger);
-    const auth: Auth = defineMsaAuth(options);
-
-    const request: AuthCodeRequest = defineAuthCodeRequest(returnUrl);
-    auth.getAuthCode(request);
+    msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl));
   };
 
   // Events

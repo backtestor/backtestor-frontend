@@ -42,7 +42,7 @@ const { language } = i18next;
   const headerComponent = "headerComponent";
 
   // Elements Update
-  const updateAuthElements = function updateSpeedLimitElements(): void {
+  const updateAuthElements = function updateAuthElements(): void {
     // Intended.
   };
 
@@ -58,7 +58,7 @@ const { language } = i18next;
   // State Update
 
   // Events
-  const onChangeAppStore = function onChangeAppStore(
+  const onChangeAuthLocalStore = function onChangeAuthLocalStore(
     key: keyof AuthLocalStore,
     value: AuthLocalStore[keyof AuthLocalStore] | undefined,
     source?: string,
@@ -75,5 +75,5 @@ const { language } = i18next;
   initView();
   updateAuthElements();
 
-  authLocalStore.listen(onChangeAppStore);
+  authLocalStore.listen(onChangeAuthLocalStore);
 </script>

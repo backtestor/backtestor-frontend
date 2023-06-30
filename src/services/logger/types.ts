@@ -9,11 +9,10 @@ export const LogLevel = {
 
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
-export type LoggerCallback = (logLevel: LogLevel, message: string) => void;
+export type LoggerHook = (logLevel: LogLevel, message: string) => void;
 
 export interface LoggerOptions {
   logLevel?: LogLevel;
-  loggerCallback: LoggerCallback;
 }
 
 export interface Logger {
@@ -23,4 +22,5 @@ export interface Logger {
   debug(message: string): void;
   verbose(message: string): void;
   trace(message: string): void;
+  addHook(level: LogLevel, hook: LoggerHook): void;
 }
