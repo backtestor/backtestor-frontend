@@ -78,17 +78,6 @@ export const ContentType = {
 
 export type ContentType = (typeof ContentType)[keyof typeof ContentType];
 
-export interface AuthOptions {
-  logger?: Logger | undefined;
-  clientId: string;
-  redirectUri: string;
-  postLogoutRedirectUri: string;
-  authority: string;
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
-  endSessionEndpoint: string;
-}
-
 export interface StateObject {
   correlationId: string;
   interactionType: InteractionType;
@@ -111,22 +100,23 @@ export interface TokenKeys {
   expiresAtUtc: Date;
 }
 
-export interface BaseResponse {
+export interface AuthResponse {
   error?: string | null;
   errorDescription?: string | null;
   errorCode?: string | null;
   timestamp?: string | null;
   traceId?: string | null;
   correlationId?: string | null;
+  stack?: string | null;
 }
 
-export interface AuthCodeResponse extends BaseResponse {
+export interface AuthCodeResponse extends AuthResponse {
   code?: string | null;
   state?: string | null;
   idToken?: string | null;
 }
 
-export interface TokenResponse extends BaseResponse {
+export interface TokenResponse extends AuthResponse {
   accessToken?: string | null;
   tokenType?: string | null;
   expiresIn?: number | null;
@@ -136,11 +126,11 @@ export interface TokenResponse extends BaseResponse {
   stateObject?: StateObject | undefined;
 }
 
-export interface BaseRequest {
+export interface AuthRequest {
   correlationId?: string | undefined;
 }
 
-export interface BaseAuthRequest extends BaseRequest {
+export interface BaseAuthRequest extends AuthRequest {
   scope?: string[] | undefined;
 }
 
@@ -165,7 +155,18 @@ export interface RefreshTokenRequest extends BaseTokenRequest {
   refreshToken?: string | undefined;
 }
 
+export interface AuthOptions {
+  logger: Logger;
+  clientId: string;
+  redirectUri: string;
+  postLogoutRedirectUri: string;
+  authority: string;
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  endSessionEndpoint: string;
+}
+
 export interface Auth {
   getAuthCode(request?: AuthCodeRequest): void;
-  handleAuthCodeResponse(): Promise<BaseResponse>;
+  handleAuthCodeResponse(): Promise<AuthResponse>;
 }

@@ -1,4 +1,4 @@
-import { Logger, defineLogger } from "@src/services/logger";
+import { Logger } from "@src/services/logger";
 import { encode } from "@src/utils/base64";
 import { generateGuid } from "@src/utils/uuid";
 import { authLocalStore, authSessionStore } from "./authStore";
@@ -9,7 +9,7 @@ import {
   AuthCodeRequest,
   AuthCodeResponse,
   AuthOptions,
-  BaseResponse,
+  AuthResponse,
   ContentType,
   HeaderName,
   InteractionType,
@@ -74,7 +74,7 @@ export abstract class BaseAuth implements Auth {
   endSessionEndpoint: string;
 
   constructor(options: AuthOptions) {
-    this.logger = options.logger ?? defineLogger();
+    this.logger = options.logger;
     this.clientId = options.clientId;
     this.redirectUri = options.redirectUri;
     this.postLogoutRedirectUri = options.postLogoutRedirectUri;
@@ -179,7 +179,7 @@ export abstract class BaseAuth implements Auth {
     authSessionStore.deleteKey("pkceCodes");
   }
 
-  async handleAuthCodeResponse(): Promise<BaseResponse> {
+  async handleAuthCodeResponse(): Promise<AuthResponse> {
     this.logger.verbose("handleAuthCodeResponse called");
     const authCodeResponse: AuthCodeResponse = this.parseAuthCodeResponse();
     this.validateAuthCodeResponse(authCodeResponse);
@@ -219,7 +219,7 @@ export abstract class BaseAuth implements Auth {
     authSessionStore.setKey("tokenKeys", tokenKeys);
   }
 
-  protected parseCommonResponseUrlParams(): BaseResponse {
+  protected parseCommonResponseUrlParams(): AuthResponse {
     this.logger.trace("parseCommonResponseUrlParams called");
     const response: AuthCodeResponse = {};
 
@@ -239,7 +239,7 @@ export abstract class BaseAuth implements Auth {
   protected parseAuthCodeResponse(): AuthCodeResponse {
     this.logger.trace("parseAuthCodeResponseUrlParams called");
     const searchParams = new URLSearchParams(location.search);
-    const baseResponse: BaseResponse = this.parseCommonResponseUrlParams();
+    const baseResponse: AuthResponse = this.parseCommonResponseUrlParams();
     const authCodeResponse: AuthCodeResponse = {
       ...baseResponse,
       code: decodeParamValue(searchParams, "code"),
@@ -249,7 +249,7 @@ export abstract class BaseAuth implements Auth {
     return authCodeResponse;
   }
 
-  protected validateBaseResponse(response: BaseResponse): void {
+  protected validateBaseResponse(response: AuthResponse): void {
     this.logger.trace("validateBaseResponse called");
     // Implement throtling logic here, see checkResponseStatus and checkResponseForRetryAfter in msal-browser
     if ((response.errorDescription || response.errorCode) && !response.error) response.error = "invalid_request";
@@ -306,7 +306,7 @@ export abstract class BaseAuth implements Auth {
       });
 
       if (!response.ok) {
-        const errorResponse: BaseResponse = this.parseErrorResponse("request_failed", response);
+        const errorResponse: AuthResponse = this.parseErrorResponse("request_failed", response);
         return errorResponse;
       }
 
@@ -319,26 +319,27 @@ export abstract class BaseAuth implements Auth {
       return tokenResponse;
     } catch (error) {
       const err = error as Error | null;
-      const errorResponse: BaseResponse = this.parseError("request_error", err);
+      const errorResponse: AuthResponse = this.parseError("request_error", err);
       return errorResponse;
     }
   }
 
-  protected parseError(errorCode: string, error: Error | null): BaseResponse {
+  protected parseError(errorCode: string, error: Error | null): AuthResponse {
     this.logger.trace("parseError called");
-    const errorResponse: BaseResponse = {
+    const errorResponse: AuthResponse = {
       error: errorCode,
       errorDescription: error?.message ?? "Unknown error",
       errorCode: error?.name ?? "Unknown",
       timestamp: getCurrentUTCTimestamp(),
+      stack: error?.stack ?? null,
     };
     this.logger.warning(JSON.stringify(errorResponse, null, 2));
     return errorResponse;
   }
 
-  protected parseErrorResponse(errorCode: string, response: Response): BaseResponse {
+  protected parseErrorResponse(errorCode: string, response: Response): AuthResponse {
     this.logger.trace("parseErrorResponse called");
-    const errorResponse: BaseResponse = {
+    const errorResponse: AuthResponse = {
       error: errorCode,
       errorDescription: response.statusText,
       errorCode: response.status.toString(),

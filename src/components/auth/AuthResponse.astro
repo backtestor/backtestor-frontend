@@ -22,42 +22,72 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { msaAuth } from "@src/services/app";
-  import { BaseResponse, TokenResponse } from "@src/services/auth";
+  import { ApiResponse } from "@src/services/api";
+  import { TokenApiRequest } from "@src/services/api/auth";
+  import { msaAuth } from "@src/services/app/auth";
+  import { authApi } from "@src/services/app/authApi";
+  import { AuthResponse, TokenResponse } from "@src/services/auth";
   import { authLocalStore } from "@src/services/auth/authStore";
+  import { generateGuid } from "@src/utils/uuid";
 
   const authenticating = document.getElementById("authenticating") as HTMLElement;
   const authenticationSucceed = document.getElementById("authentication-succeed") as HTMLElement;
   const authenticationFailed = document.getElementById("authentication-failed") as HTMLElement;
-  const error = document.getElementById("error") as HTMLElement;
-  const errorCode = document.getElementById("error-code") as HTMLElement;
-  const errorDescription = document.getElementById("error-description") as HTMLElement;
-  const timestamp = document.getElementById("timestamp") as HTMLElement;
-  const correlationId = document.getElementById("correlation-id") as HTMLElement;
+  const errorElement = document.getElementById("error") as HTMLElement;
+  const errorCodeElement = document.getElementById("error-code") as HTMLElement;
+  const errorDescriptionElement = document.getElementById("error-description") as HTMLElement;
+  const timestampElement = document.getElementById("timestamp") as HTMLElement;
+  const correlationIdElement = document.getElementById("correlation-id") as HTMLElement;
 
   // Functions
-  const showError = function showError(response: BaseResponse): void {
+  const showError = function showError(
+    error?: string | null,
+    errorCode?: string | null,
+    errorDescription?: string | null,
+    timestamp?: string | null,
+    correlationId?: string | null,
+  ): void {
     authenticating.hidden = true;
     authenticationSucceed.hidden = true;
     authenticationFailed.hidden = false;
 
-    error.innerText = `${response.error}`;
-    errorCode.innerText = `${response.errorCode}`;
-    errorDescription.innerText = `${response.errorDescription}`;
-    timestamp.innerText = `${response.timestamp}`;
-    correlationId.innerText = `${response.correlationId}`;
+    errorElement.innerText = `${error}`;
+    errorCodeElement.innerText = `${errorCode}`;
+    errorDescriptionElement.innerText = `${errorDescription}`;
+    timestampElement.innerText = `${timestamp}`;
+    correlationIdElement.innerText = `${correlationId}`;
 
-    error.hidden = typeof response.error !== "string";
-    errorCode.hidden = typeof response.errorCode !== "string";
-    errorDescription.hidden = typeof response.errorDescription !== "string";
-    timestamp.hidden = typeof response.timestamp !== "string";
-    correlationId.hidden = typeof response.correlationId !== "string";
+    errorElement.hidden = typeof error !== "string";
+    errorCodeElement.hidden = typeof errorCode !== "string";
+    errorDescriptionElement.hidden = typeof errorDescription !== "string";
+    timestampElement.hidden = typeof timestamp !== "string";
+    correlationIdElement.hidden = typeof correlationId !== "string";
   };
 
   const handleAuthRedirectResponse = async function handleAuthRedirectResponse(): Promise<void> {
-    const response: BaseResponse = await msaAuth.handleAuthCodeResponse();
-    if (response.error) {
-      showError(response);
+    const authResponse: AuthResponse = await msaAuth.handleAuthCodeResponse();
+    if (authResponse.error) {
+      showError(
+        authResponse.error,
+        authResponse.errorCode,
+        authResponse.errorDescription,
+        authResponse.timestamp,
+        authResponse.correlationId,
+      );
+      return;
+    }
+
+    const tokenResponse: TokenResponse = authResponse as TokenResponse;
+
+    const tokenRequest: TokenApiRequest = {
+      sessionId: generateGuid(),
+      correlationId: generateGuid(),
+      requestId: generateGuid(),
+      idToken: tokenResponse.idToken as string,
+    };
+    const apiresponse: ApiResponse = await authApi.getToken(tokenRequest);
+    if (apiresponse.error) {
+      showError(apiresponse.error.message, null, null, apiresponse.executedAtUtc, apiresponse.correlationId);
       return;
     }
 
@@ -65,7 +95,6 @@ changeLanguage("en");
     authenticationSucceed.hidden = false;
     authenticationFailed.hidden = true;
 
-    const tokenResponse: TokenResponse = response as TokenResponse;
     if (tokenResponse?.stateObject?.redirectStartPage && !authLocalStore.value.debugDoNotRedirectAfterSigninCallback)
       window.location.assign(tokenResponse.stateObject.redirectStartPage);
   };

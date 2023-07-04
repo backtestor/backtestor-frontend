@@ -1,4 +1,4 @@
-import { Logger } from "@src/services/logger";
+import { Logger, defineLogger } from "@src/services/logger";
 import {
   Auth,
   AuthCodeRequest,
@@ -11,20 +11,16 @@ import {
 } from ".";
 import { authSessionStore } from "./authStore";
 
-const msaAuthOptions: AuthOptions = {
-  clientId: import.meta.env.PUBLIC_MSA_CLIENT_ID,
-  redirectUri: import.meta.env.PUBLIC_MSA_REDIRECT_URI,
-  postLogoutRedirectUri: import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI,
-  authority: import.meta.env.PUBLIC_MSA_AUTHORITY,
-  authorizationEndpoint: import.meta.env.PUBLIC_MSA_AUTHORIZATION_ENDPOINT,
-  tokenEndpoint: import.meta.env.PUBLIC_MSA_TOKEN_ENDPOINT,
-  endSessionEndpoint: import.meta.env.PUBLIC_MSA_END_SESSION_ENDPOINT,
-};
-
 export const defineMsaAuthOptions = function defineMsaAuthOptions(logger?: Logger): AuthOptions {
   const options: AuthOptions = {
-    ...msaAuthOptions,
-    logger,
+    logger: logger ?? defineLogger(),
+    clientId: import.meta.env.PUBLIC_MSA_CLIENT_ID,
+    redirectUri: import.meta.env.PUBLIC_MSA_REDIRECT_URI,
+    postLogoutRedirectUri: import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI,
+    authority: import.meta.env.PUBLIC_MSA_AUTHORITY,
+    authorizationEndpoint: import.meta.env.PUBLIC_MSA_AUTHORIZATION_ENDPOINT,
+    tokenEndpoint: import.meta.env.PUBLIC_MSA_TOKEN_ENDPOINT,
+    endSessionEndpoint: import.meta.env.PUBLIC_MSA_END_SESSION_ENDPOINT,
   };
   return options;
 };
