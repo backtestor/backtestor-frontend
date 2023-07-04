@@ -7,6 +7,6 @@ From: Ireland
 
 /* SITE */
 Frameworks: Astro, PWA
-Programming languages: JavaScript, Go, SQL
+Programming languages: TypeScript, Go, SQL
 Software: VS Code
 Language: English
