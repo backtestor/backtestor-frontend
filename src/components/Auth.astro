@@ -37,7 +37,7 @@ const { language } = i18next;
 </PMenu>
 
 <script>
-  import { AuthLocalStore, authLocalStore } from "@src/services/auth/authStore";
+  import { IpLocalStore, ipLocalStore } from "@src/services/ip/ipStore";
 
   const headerComponent = "headerComponent";
 
@@ -58,9 +58,9 @@ const { language } = i18next;
   // State Update
 
   // Events
-  const onChangeAuthLocalStore = function onChangeAuthLocalStore(
-    key: keyof AuthLocalStore,
-    value: AuthLocalStore[keyof AuthLocalStore] | undefined,
+  const onChangeIpLocalStore = function onChangeIpLocalStore(
+    key: keyof IpLocalStore,
+    value: IpLocalStore[keyof IpLocalStore] | undefined,
     source?: string,
   ): void {
     if (source === headerComponent || typeof value === "undefined") return;
@@ -75,5 +75,5 @@ const { language } = i18next;
   initView();
   updateAuthElements();
 
-  authLocalStore.listen(onChangeAuthLocalStore);
+  ipLocalStore.listen(onChangeIpLocalStore);
 </script>

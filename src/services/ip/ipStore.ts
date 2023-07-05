@@ -2,39 +2,39 @@
 import { MapStore, StorageType, defineMapStore } from "@src/services/stores";
 import { PkceCodes, StateObject, TokenKeys } from "./types";
 
-export type AuthLocalStore = {
+export type IpLocalStore = {
   debugDoNotRedirectOnSignin: boolean;
   debugDoNotRedirectAfterSigninCallback: boolean;
 };
 
-const initialLocalValue: AuthLocalStore = {
+const initialLocalValue: IpLocalStore = {
   debugDoNotRedirectOnSignin: false,
   debugDoNotRedirectAfterSigninCallback: false,
 };
 
-export type AuthSessionStore = {
+export type IpSessionStore = {
   scope: string[];
   stateObject: StateObject;
   pkceCodes: PkceCodes;
   tokenKeys: TokenKeys;
 };
 
-const initialSessionValue: AuthSessionStore = {
+const initialSessionValue: IpSessionStore = {
   scope: [],
   stateObject: {} as StateObject,
   pkceCodes: {} as PkceCodes,
   tokenKeys: {} as TokenKeys,
 };
 
-const prefix = "auth/";
+const prefix = "ip/";
 
-export const authLocalStore: MapStore<AuthLocalStore> = defineMapStore(
+export const ipLocalStore: MapStore<IpLocalStore> = defineMapStore(
   initialLocalValue,
   prefix,
   StorageType.LOCAL_STORAGE,
 );
 
-export const authSessionStore: MapStore<AuthSessionStore> = defineMapStore(
+export const ipSessionStore: MapStore<IpSessionStore> = defineMapStore(
   initialSessionValue,
   prefix,
   StorageType.SESSION_STORAGE,

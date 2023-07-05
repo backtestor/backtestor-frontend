@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 import { loggerLocalStore } from "./loggerStore";
-import { LogLevel, Logger, LoggerHook, LoggerOptions } from "./types";
+import { LogLevel, LoggerHook } from "./types";
 
 const mapStringToLogLevel = function mapStringToLogLevel(logLevelString: string): LogLevel {
   switch (logLevelString) {
@@ -31,41 +31,23 @@ const logLevelMapping: Record<LogLevel, number> = {
   trace: 6,
 };
 
-const nullLoggerCallback: LoggerHook = (): void => {
-  // Intentionally empty
-};
-
-const consoleLoggerCallback: LoggerHook = function consoleLoggerCallback(level: LogLevel, message: string): void {
-  const timestamp: string = new Date().toISOString();
-  const logMessage = `${timestamp} [${level}] ${message}`;
-  switch (level) {
-    case LogLevel.ERROR:
-      console.error(logMessage);
-      break;
-    case LogLevel.WARNING:
-      console.warn(logMessage);
-      break;
-    case LogLevel.INFO:
-      console.info(logMessage);
-      break;
-    case LogLevel.DEBUG:
-      console.debug(logMessage);
-      break;
-    case LogLevel.VERBOSE:
-      console.debug(logMessage);
-      break;
-    case LogLevel.TRACE:
-      console.trace(logMessage);
-      break;
-    default:
-      console.log(logMessage);
-      break;
-  }
-};
-
 interface HookDefinition {
   loggerHook: LoggerHook;
   logLevel: LogLevel;
+}
+
+export interface LoggerOptions {
+  logLevel: LogLevel;
+}
+
+export interface Logger {
+  error(message: string): void;
+  warning(message: string): void;
+  info(message: string): void;
+  debug(message: string): void;
+  verbose(message: string): void;
+  trace(message: string): void;
+  addHook(level: LogLevel, hook: LoggerHook): void;
 }
 
 class LoggerImpl implements Logger {
@@ -74,7 +56,7 @@ class LoggerImpl implements Logger {
   hooks: HookDefinition[] = [];
 
   constructor(options: LoggerOptions) {
-    this.logLevel = typeof options.logLevel === "undefined" ? LogLevel.INFO : options.logLevel;
+    this.logLevel = options.logLevel;
   }
 
   logMessage(logLevel: LogLevel, message: string): void {
@@ -123,6 +105,38 @@ class LoggerImpl implements Logger {
   }
 }
 
+const nullLoggerCallback: LoggerHook = (): void => {
+  // Intentionally empty
+};
+
+const consoleLoggerCallback: LoggerHook = function consoleLoggerCallback(level: LogLevel, message: string): void {
+  const timestamp: string = new Date().toISOString();
+  const logMessage = `${timestamp} [${level}] ${message}`;
+  switch (level) {
+    case LogLevel.ERROR:
+      console.error(logMessage);
+      break;
+    case LogLevel.WARNING:
+      console.warn(logMessage);
+      break;
+    case LogLevel.INFO:
+      console.info(logMessage);
+      break;
+    case LogLevel.DEBUG:
+      console.debug(logMessage);
+      break;
+    case LogLevel.VERBOSE:
+      console.debug(logMessage);
+      break;
+    case LogLevel.TRACE:
+      console.trace(logMessage);
+      break;
+    default:
+      console.log(logMessage);
+      break;
+  }
+};
+
 export const defineLogger = function defineLogger(loggerLevel?: string): Logger {
   const logLevelString: string = loggerLevel ?? loggerLocalStore.value.loggerLevel;
   const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
@@ -133,7 +147,7 @@ export const defineLogger = function defineLogger(loggerLevel?: string): Logger 
   return logger;
 };
 
-export const addNullHook = function addNullHook(logger: Logger, loggerLevel?: string): void {
+export const addNullLogger = function addNullLogger(logger: Logger, loggerLevel?: string): void {
   const logLevelString: string = loggerLevel ?? loggerLocalStore.value.loggerLevel;
   const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
   logger.addHook(logLevel, nullLoggerCallback);

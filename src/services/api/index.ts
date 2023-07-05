@@ -1,4 +1,4 @@
-import { Api, ApiOptions, ApiResponse, BaseApiRequest, HeaderName, Logger } from "./types";
+import { ApiResponse, BaseApiRequest, HeaderName, Logger } from "./types";
 
 const getCurrentUTCTimestamp = (): string => {
   const now = new Date();
@@ -7,16 +7,17 @@ const getCurrentUTCTimestamp = (): string => {
   return `${utcString ?? ""} UTC`;
 };
 
-export const defineApiOptions = function defineApiOptions(logger: Logger): ApiOptions {
-  const options: ApiOptions = {
-    clientAppId: import.meta.env.PUBLIC_API_CLIENT_APP_ID,
-    baseUrl: import.meta.env.PUBLIC_API_BASE_URL,
-    logger,
-  };
-  return options;
-};
+export interface ApiOptions {
+  logger: Logger;
+  clientAppId: string;
+  baseUrl: string;
+}
 
-export class ApiImpl implements Api {
+export interface Api {
+  getHeaders(request: BaseApiRequest): HeadersInit;
+}
+
+export abstract class BaseApi implements Api {
   logger: Logger;
 
   clientAppId: string;
@@ -46,9 +47,18 @@ export class ApiImpl implements Api {
       executedAtUtc: getCurrentUTCTimestamp(),
       error: {
         message: `${errorCode}: ${error?.message ?? "Unknown error"}`,
-        stack: error?.stack ?? null,
+        stack: error?.stack ?? "",
       },
     };
     return response;
   }
 }
+
+export const defineApiOptions = function defineApiOptions(logger: Logger): ApiOptions {
+  const options: ApiOptions = {
+    clientAppId: import.meta.env.PUBLIC_API_CLIENT_APP_ID,
+    baseUrl: import.meta.env.PUBLIC_API_BASE_URL,
+    logger,
+  };
+  return options;
+};

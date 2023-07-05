@@ -1,5 +1,5 @@
-import { ApiImpl, defineApiOptions } from ".";
-import { ApiOptions, ApiResponse, BaseApiRequest, ContentType, HeaderName, Logger } from "./types";
+import { ApiOptions, BaseApi, defineApiOptions } from ".";
+import { ApiResponse, BaseApiRequest, HeaderName, Logger } from "./types";
 
 export interface TokenApiRequest extends BaseApiRequest {
   idToken: string;
@@ -13,28 +13,23 @@ const AuthApiPath = {
 
 type AuthApiPath = (typeof AuthApiPath)[keyof typeof AuthApiPath];
 
+const ContentType = {
+  URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
+} as const;
+
+type ContentType = (typeof ContentType)[keyof typeof ContentType];
+
 export interface AuthApiOptions extends ApiOptions {
   tokenPath: AuthApiPath;
   revokeTokenPath: AuthApiPath;
   logoutPath: AuthApiPath;
 }
 
-export const defineAuthApiOptions = function defineAuthApiOptions(logger: Logger): AuthApiOptions {
-  const apiOptions: ApiOptions = defineApiOptions(logger);
-  const options: AuthApiOptions = {
-    ...apiOptions,
-    tokenPath: AuthApiPath.TOKEN,
-    revokeTokenPath: AuthApiPath.REVOKE_TOKEN,
-    logoutPath: AuthApiPath.LOGOUT,
-  };
-  return options;
-};
-
 export interface AuthApi {
   getToken(request: TokenApiRequest): Promise<ApiResponse>;
 }
 
-export class AuthApiImpl extends ApiImpl implements AuthApi {
+export class AuthApiImpl extends BaseApi implements AuthApi {
   tokenPath: AuthApiPath;
 
   revokeTokenPath: AuthApiPath;
@@ -100,6 +95,17 @@ export class AuthApiImpl extends ApiImpl implements AuthApi {
     return queryString;
   }
 }
+
+export const defineAuthApiOptions = function defineAuthApiOptions(logger: Logger): AuthApiOptions {
+  const apiOptions: ApiOptions = defineApiOptions(logger);
+  const options: AuthApiOptions = {
+    ...apiOptions,
+    tokenPath: AuthApiPath.TOKEN,
+    revokeTokenPath: AuthApiPath.REVOKE_TOKEN,
+    logoutPath: AuthApiPath.LOGOUT,
+  };
+  return options;
+};
 
 export const defineAuthApi = function defineAuthApi(authApiOptions: AuthApiOptions): AuthApi {
   const auth = new AuthApiImpl(authApiOptions);

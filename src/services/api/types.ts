@@ -18,39 +18,23 @@ export const HeaderName = {
 
 export type HeaderName = (typeof HeaderName)[keyof typeof HeaderName];
 
-export const ContentType = {
-  URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
-} as const;
-
-export type ContentType = (typeof ContentType)[keyof typeof ContentType];
-
-export interface ApiOptions {
-  logger: Logger;
-  clientAppId: string;
-  baseUrl: string;
-}
-
 export interface BaseApiRequest {
   sessionId: string;
   correlationId: string;
   requestId: string;
 }
 
-export interface Api {
-  getHeaders(request: BaseApiRequest): HeadersInit;
-}
-
 export interface ErrorResponse {
-  message?: string | null;
-  stack?: string | null;
+  message?: string;
+  stack?: string;
 }
 
 export interface ApiResponse {
-  status?: string | null;
-  sessionID?: string | null;
-  correlationId?: string | null;
-  requestID?: string | null;
-  executedAtUtc?: string | null;
-  result?: unknown | null;
-  error?: ErrorResponse | null;
+  status?: string;
+  sessionID?: string;
+  correlationId?: string;
+  requestID?: string;
+  executedAtUtc?: string;
+  result?: unknown;
+  error?: ErrorResponse;
 }

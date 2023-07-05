@@ -25,10 +25,10 @@ changeLanguage("en");
   import { TokenApiRequest } from "@src/services/api/auth";
   import { ApiResponse } from "@src/services/api/types";
   import { appSessionStore } from "@src/services/app/appStore";
-  import { msaAuth } from "@src/services/app/auth";
   import { authApi } from "@src/services/app/authApi";
-  import { authLocalStore } from "@src/services/auth/authStore";
-  import { AuthResponse, TokenResponse } from "@src/services/auth/types";
+  import { msaAuth } from "@src/services/app/ip";
+  import { ipLocalStore } from "@src/services/ip/ipStore";
+  import { AuthResponse, TokenResponse } from "@src/services/ip/types";
   import { generateGuid } from "@src/utils/uuid";
 
   const authenticating = document.getElementById("authenticating") as HTMLElement;
@@ -99,7 +99,7 @@ changeLanguage("en");
     authenticationSucceed.hidden = false;
     authenticationFailed.hidden = true;
 
-    if (tokenResponse?.stateObject?.redirectStartPage && !authLocalStore.value.debugDoNotRedirectAfterSigninCallback)
+    if (tokenResponse?.stateObject?.redirectStartPage && !ipLocalStore.value.debugDoNotRedirectAfterSigninCallback)
       window.location.assign(tokenResponse.stateObject.redirectStartPage);
   };
 

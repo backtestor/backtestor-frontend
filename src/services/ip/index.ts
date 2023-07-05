@@ -1,45 +1,39 @@
 import { encode } from "@src/utils/base64";
 import { generateGuid } from "@src/utils/uuid";
-import { authLocalStore, authSessionStore } from "./authStore";
 import { preflightBrowserEnvironmentCheck } from "./browser";
+import { ipLocalStore, ipSessionStore } from "./ipStore";
 import { generatePkceCodes } from "./pkce";
 import {
-  Auth,
   AuthCodeRequest,
   AuthCodeResponse,
-  AuthOptions,
   AuthResponse,
-  ContentType,
-  HeaderName,
-  InteractionType,
+  InitializedAuthCodeRequest,
   Logger,
   OIDC_DEFAULT_SCOPES,
   OIDC_SCOPES,
   PkceCodes,
-  ResponseMode,
-  ResponseType,
   StateObject,
   TokenKeys,
   TokenResponse,
 } from "./types";
 
-export const defineAuthCodeRequest = function defineAuthCodeRequest(
-  redirectStartPage?: string,
-  scope?: string[],
-  sessionId?: string,
-  correlationId?: string,
-  requestId?: string,
-): AuthCodeRequest {
-  const request: AuthCodeRequest = {
-    redirectStartPage,
-    scope: scope ?? OIDC_SCOPES,
-    sessionId: sessionId ?? generateGuid(),
-    correlationId: correlationId ?? generateGuid(),
-    requestId: requestId ?? generateGuid(),
-  };
+const HeaderName = {
+  CONTENT_TYPE: "Content-Type",
+  RETRY_AFTER: "Retry-After",
+  CCS_HEADER: "X-AnchorMailbox",
+  WWWAuthenticate: "WWW-Authenticate",
+  AuthenticationInfo: "Authentication-Info",
+  X_MS_REQUEST_ID: "x-ms-request-id",
+  X_MS_HTTP_VERSION: "x-ms-httpver",
+} as const;
 
-  return request;
-};
+type HeaderName = (typeof HeaderName)[keyof typeof HeaderName];
+
+const ContentType = {
+  URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
+} as const;
+
+type ContentType = (typeof ContentType)[keyof typeof ContentType];
 
 const getCurrentUTCTimestamp = (): string => {
   const now = new Date();
@@ -59,6 +53,22 @@ const decodeParamValue = function decodeParamValue(searchParams: URLSearchParams
   const encodedValue: string | null = searchParams.get(paramName);
   return encodedValue === null ? null : decodeURIComponent(encodedValue);
 };
+
+export interface AuthOptions {
+  logger: Logger;
+  authority: string;
+  clientId: string;
+  redirectUri: string;
+  postLogoutRedirectUri: string;
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  endSessionEndpoint: string;
+}
+
+export interface Auth {
+  getAuthCode(request?: AuthCodeRequest): void;
+  handleAuthCodeResponse(): Promise<AuthResponse>;
+}
 
 export abstract class BaseAuth implements Auth {
   logger: Logger;
@@ -88,64 +98,57 @@ export abstract class BaseAuth implements Auth {
     this.endSessionEndpoint = options.endSessionEndpoint;
   }
 
-  abstract getAuthCodeUrl(request: AuthCodeRequest): string;
+  abstract getAuthCodeUrl(request: InitializedAuthCodeRequest): string;
 
   abstract getTokenFormString(authCodeResponse: AuthCodeResponse): string;
 
-  async getAuthCode(request?: AuthCodeRequest): Promise<void> {
+  async getAuthCode(request: AuthCodeRequest): Promise<void> {
     this.logger.verbose("getAuthCode called");
 
-    preflightBrowserEnvironmentCheck(InteractionType.REDIRECT);
-
-    const initializedAuthCodeRequest: AuthCodeRequest = this.initializeAuthCodeRequest(
-      request ?? defineAuthCodeRequest(),
-      InteractionType.REDIRECT,
-    );
+    preflightBrowserEnvironmentCheck();
 
     try {
-      const authCodeRequest: AuthCodeRequest = await this.generatePkceParams(initializedAuthCodeRequest);
-      this.updateStoreForAuthRequest(authCodeRequest);
+      const initializedAuthCodeRequest: InitializedAuthCodeRequest = await this.initializeAuthCodeRequest(request);
 
-      const navigateUrl: string = this.getAuthCodeUrl(authCodeRequest);
+      this.updateStoreForAuthRequest(initializedAuthCodeRequest);
+
+      const navigateUrl: string = this.getAuthCodeUrl(initializedAuthCodeRequest);
       this.logger.debug(`getAuthCode navigating to: ${navigateUrl}`);
-      if (!authLocalStore.value.debugDoNotRedirectOnSignin) window.location.assign(navigateUrl);
+      if (!ipLocalStore.value.debugDoNotRedirectOnSignin) window.location.assign(navigateUrl);
     } catch (e) {
       this.cleanStoreForAuthRequest();
       throw e;
     }
   }
 
-  initializeAuthCodeRequest(request: AuthCodeRequest, interactionType: InteractionType): AuthCodeRequest {
+  async initializeAuthCodeRequest(request: AuthCodeRequest): Promise<InitializedAuthCodeRequest> {
     this.logger.trace("initializeAuthCodeRequest called");
-    const stateObject: StateObject = this.setState(request, interactionType);
 
-    const scopeSet = new Set([...(request.scope ?? []), ...OIDC_DEFAULT_SCOPES]);
+    const scopeSet = new Set([...request.scope, ...OIDC_DEFAULT_SCOPES]);
     const scopeArray: string[] = Array.from(scopeSet);
 
-    const initializedAuthCodeRequest: AuthCodeRequest = {
+    const stateObject: StateObject = this.setState(request);
+    const pkceCodes: PkceCodes = await this.generatePkceParams();
+
+    const initializedAuthCodeRequest: InitializedAuthCodeRequest = {
       ...request,
       scope: scopeArray,
-      responseType: ResponseType.CODE,
-      responseMode: ResponseMode.QUERY,
       stateObject,
-      nonce: request.nonce ?? generateGuid(),
+      nonce: generateGuid(),
+      pkceCodes,
     };
 
     return initializedAuthCodeRequest;
   }
 
-  setState(request: AuthCodeRequest, interactionType: InteractionType, meta?: Record<string, string>): StateObject {
+  setState(request: AuthCodeRequest): StateObject {
     this.logger.trace("setState called");
     const stateObject: StateObject = {
       sessionId: request.sessionId,
       correlationId: request.correlationId,
       requestId: request.requestId,
-      interactionType,
+      redirectStartPage: request.redirectStartPage,
     };
-
-    if (interactionType === InteractionType.REDIRECT)
-      stateObject.redirectStartPage = request.redirectStartPage ?? window.location.href;
-    if (meta) stateObject.meta = meta;
 
     const stateString: string = JSON.stringify(stateObject);
     stateObject.encodedState = encode(stateString);
@@ -153,29 +156,25 @@ export abstract class BaseAuth implements Auth {
     return stateObject;
   }
 
-  async generatePkceParams(request: AuthCodeRequest): Promise<AuthCodeRequest> {
+  async generatePkceParams(): Promise<PkceCodes> {
     this.logger.trace("generatePkceParams called");
     const pkceCodes: PkceCodes = await generatePkceCodes();
-    const authCodeRequest: AuthCodeRequest = {
-      ...request,
-      pkceCodes,
-    };
 
-    return authCodeRequest;
+    return pkceCodes;
   }
 
-  updateStoreForAuthRequest(request: AuthCodeRequest): void {
+  updateStoreForAuthRequest(request: InitializedAuthCodeRequest): void {
     this.logger.trace("updateStoreForAuthRequest called");
-    authSessionStore.setKey("scope", request.scope);
-    authSessionStore.setKey("stateObject", request.stateObject);
-    authSessionStore.setKey("pkceCodes", request.pkceCodes);
+    ipSessionStore.setKey("scope", request.scope);
+    ipSessionStore.setKey("stateObject", request.stateObject);
+    ipSessionStore.setKey("pkceCodes", request.pkceCodes);
   }
 
   protected cleanStoreForAuthRequest(): void {
     this.logger.trace("cleanStoreForAuthRequest called");
-    authSessionStore.deleteKey("scope");
-    authSessionStore.deleteKey("stateObject");
-    authSessionStore.deleteKey("pkceCodes");
+    ipSessionStore.deleteKey("scope");
+    ipSessionStore.deleteKey("stateObject");
+    ipSessionStore.deleteKey("pkceCodes");
   }
 
   async handleAuthCodeResponse(): Promise<AuthResponse> {
@@ -198,7 +197,7 @@ export abstract class BaseAuth implements Auth {
       return tokenResponse;
     }
 
-    tokenResponse.stateObject = authSessionStore.value.stateObject;
+    tokenResponse.stateObject = ipSessionStore.value.stateObject;
     this.cleanStoreForAuthRequest();
 
     this.updateStoreWithTokenResponse(tokenResponse);
@@ -216,12 +215,12 @@ export abstract class BaseAuth implements Auth {
       refreshToken: tokenResponse.refreshToken ?? "",
       expiresAtUtc,
     };
-    authSessionStore.setKey("tokenKeys", tokenKeys);
+    ipSessionStore.setKey("tokenKeys", tokenKeys);
   }
 
   protected parseAuthCodeResponse(): AuthCodeResponse {
     this.logger.trace("parseAuthCodeResponse called");
-    const { stateObject } = authSessionStore.value;
+    const { stateObject } = ipSessionStore.value;
     const searchParams = new URLSearchParams(location.search);
     const authCodeResponse: AuthCodeResponse = {
       error: decodeParamValue(searchParams, "error"),
@@ -256,7 +255,7 @@ export abstract class BaseAuth implements Auth {
       response.errorDescription = "Failed to retrieve auth code from url";
       return;
     }
-    if (authSessionStore.value.scope.length === 0) {
+    if (ipSessionStore.value.scope.length === 0) {
       response.error = "invalid_state";
       response.errorDescription = "Scope not present in cache";
       return;
@@ -266,16 +265,16 @@ export abstract class BaseAuth implements Auth {
       response.errorDescription = "Failed to retrieve state from url";
       return;
     }
-    if (!authSessionStore.value.stateObject.encodedState) {
+    if (!ipSessionStore.value.stateObject.encodedState) {
       response.error = "invalid_state";
       response.errorDescription = "State not present in cache";
       return;
     }
-    if (decodeURIComponent(response.state) !== authSessionStore.value.stateObject.encodedState) {
+    if (decodeURIComponent(response.state) !== ipSessionStore.value.stateObject.encodedState) {
       response.error = "invalid_state";
       response.errorDescription = "State mismatch";
     }
-    if (!authSessionStore.value.pkceCodes.codeVerifier) {
+    if (!ipSessionStore.value.pkceCodes.codeVerifier) {
       response.error = "invalid_state";
       response.errorDescription = "Code verifier not present in cache";
     }
@@ -378,3 +377,21 @@ export abstract class BaseAuth implements Auth {
     return tokenResponse;
   }
 }
+
+export const defineAuthCodeRequest = function defineAuthCodeRequest(
+  redirectStartPage?: string,
+  scope?: string[],
+  sessionId?: string,
+  correlationId?: string,
+  requestId?: string,
+): AuthCodeRequest {
+  const request: AuthCodeRequest = {
+    sessionId: sessionId ?? generateGuid(),
+    correlationId: correlationId ?? generateGuid(),
+    requestId: requestId ?? generateGuid(),
+    scope: scope ?? OIDC_SCOPES,
+    redirectStartPage: redirectStartPage ?? window.location.href,
+  };
+
+  return request;
+};

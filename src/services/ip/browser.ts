@@ -1,4 +1,4 @@
-import { AuthConstants, InteractionType } from "./types";
+const POPUP_NAME_PREFIX = "auth";
 
 const IsBrowserEnvironment: boolean = typeof window !== "undefined";
 
@@ -12,7 +12,7 @@ const isInPopup = function isInPopup(): boolean {
     Boolean(window.opener) &&
     window.opener !== window &&
     typeof window.name === "string" &&
-    window.name.startsWith(`${AuthConstants.POPUP_NAME_PREFIX}.`)
+    window.name.startsWith(`${POPUP_NAME_PREFIX}.`)
   );
 };
 
@@ -20,9 +20,8 @@ const blockNonBrowserEnvironment = function blockNonBrowserEnvironment(): void {
   if (!IsBrowserEnvironment) throw new Error("The current environment is not a browser environment.");
 };
 
-const blockRedirectInIframe = function blockRedirectInIframe(interactionType: InteractionType): void {
-  const isIframedApp: boolean = isInIframe();
-  if (interactionType === InteractionType.REDIRECT && isIframedApp)
+const blockRedirectInIframe = function blockRedirectInIframe(): void {
+  if (isInIframe())
     // If we are not in top frame, we shouldn't redirect.
     throw new Error("Redirect is not supported in an iframe.");
 };
@@ -32,14 +31,12 @@ const blockAcquireTokenInPopups = function blockAcquireTokenInPopups(): void {
   if (isInPopup()) throw new Error("AcquireToken is not supported in popups.");
 };
 
-export const preflightBrowserEnvironmentCheck = function preflightBrowserEnvironmentCheck(
-  interactionType: InteractionType,
-): void {
+export const preflightBrowserEnvironmentCheck = function preflightBrowserEnvironmentCheck(): void {
   // Block request if not in browser environment
   blockNonBrowserEnvironment();
 
   // Block redirects if in an iframe
-  blockRedirectInIframe(interactionType);
+  blockRedirectInIframe();
 
   // Block redirectUri opened in a popup from calling MSAL APIs
   blockAcquireTokenInPopups();
