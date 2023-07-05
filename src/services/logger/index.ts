@@ -3,8 +3,6 @@
 import { loggerLocalStore } from "./loggerStore";
 import { LogLevel, Logger, LoggerHook, LoggerOptions } from "./types";
 
-export * from "./types";
-
 const mapStringToLogLevel = function mapStringToLogLevel(logLevelString: string): LogLevel {
   switch (logLevelString) {
     case "error":

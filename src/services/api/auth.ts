@@ -1,6 +1,5 @@
-import { Logger } from "@src/services/logger";
 import { ApiImpl, defineApiOptions } from ".";
-import { ApiOptions, ApiResponse, BaseApiRequest, ContentType, HeaderName } from "./types";
+import { ApiOptions, ApiResponse, BaseApiRequest, ContentType, HeaderName, Logger } from "./types";
 
 export interface TokenApiRequest extends BaseApiRequest {
   idToken: string;
@@ -20,7 +19,7 @@ export interface AuthApiOptions extends ApiOptions {
   logoutPath: AuthApiPath;
 }
 
-export const defineAuthApiOptions = function defineAuthApiOptions(logger?: Logger): AuthApiOptions {
+export const defineAuthApiOptions = function defineAuthApiOptions(logger: Logger): AuthApiOptions {
   const apiOptions: ApiOptions = defineApiOptions(logger);
   const options: AuthApiOptions = {
     ...apiOptions,
@@ -36,16 +35,22 @@ export interface AuthApi {
 }
 
 export class AuthApiImpl extends ApiImpl implements AuthApi {
-  override o: AuthApiOptions;
+  tokenPath: AuthApiPath;
+
+  revokeTokenPath: AuthApiPath;
+
+  logoutPath: AuthApiPath;
 
   constructor(authApiOptions: AuthApiOptions) {
     super(authApiOptions);
-    this.o = authApiOptions;
+    this.tokenPath = authApiOptions.tokenPath;
+    this.revokeTokenPath = authApiOptions.revokeTokenPath;
+    this.logoutPath = authApiOptions.logoutPath;
   }
 
   async getToken(request: TokenApiRequest): Promise<ApiResponse> {
-    this.o.logger.verbose("getToken called");
-    const tokenUrl = `${this.o.baseUrl}${this.o.tokenPath}`;
+    this.logger.verbose("getToken called");
+    const tokenUrl = `${this.baseUrl}${this.tokenPath}`;
     const headers: HeadersInit = {
       ...this.getHeaders(request),
       [HeaderName.CONTENT_TYPE]: ContentType.URL_FORM_CONTENT_TYPE,
@@ -61,23 +66,29 @@ export class AuthApiImpl extends ApiImpl implements AuthApi {
 
       const apiResponse: ApiResponse = (await response.json().catch((error): ApiResponse => {
         const err = error as Error | null;
-        const errorResponse: ApiResponse = this.parseError("request_failed", err);
+        const errorResponse = {
+          ...this.parseError("request_failed", err),
+        } as ApiResponse;
+        this.logger.warning(`getToken failed: ${JSON.stringify(errorResponse, null, 2)}`);
         return errorResponse;
       })) as ApiResponse;
 
-      if (apiResponse.error) this.o.logger.warning(JSON.stringify(apiResponse, null, 2));
-      else this.o.logger.debug(JSON.stringify(apiResponse, null, 2));
+      if (apiResponse.error) this.logger.warning(`getToken not succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
+      else this.logger.debug(`getToken succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
 
       return apiResponse;
     } catch (error) {
       const err = error as Error | null;
-      const errorResponse: ApiResponse = this.parseError("request_error", err);
+      const errorResponse = {
+        ...this.parseError("request_error", err),
+      } as ApiResponse;
+      this.logger.error(`getToken error: ${JSON.stringify(errorResponse, null, 2)}`);
       return errorResponse;
     }
   }
 
   getTokenFormString(request: TokenApiRequest): string {
-    this.o.logger.trace("getTokenFormString called");
+    this.logger.trace("getTokenFormString called");
     const parameters: Map<string, string> = new Map<string, string>();
 
     parameters.set("id_token", encodeURIComponent(request.idToken));

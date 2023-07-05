@@ -1,4 +1,3 @@
-import { Logger } from "@src/services/logger";
 import { encode } from "@src/utils/base64";
 import { generateGuid } from "@src/utils/uuid";
 import { authLocalStore, authSessionStore } from "./authStore";
@@ -13,6 +12,7 @@ import {
   ContentType,
   HeaderName,
   InteractionType,
+  Logger,
   OIDC_DEFAULT_SCOPES,
   OIDC_SCOPES,
   PkceCodes,
@@ -22,8 +22,6 @@ import {
   TokenKeys,
   TokenResponse,
 } from "./types";
-
-export * from "./types";
 
 export const defineAuthCodeRequest = function defineAuthCodeRequest(
   redirectStartPage?: string,
@@ -223,6 +221,7 @@ export abstract class BaseAuth implements Auth {
 
   protected parseAuthCodeResponse(): AuthCodeResponse {
     this.logger.trace("parseAuthCodeResponse called");
+    const { stateObject } = authSessionStore.value;
     const searchParams = new URLSearchParams(location.search);
     const authCodeResponse: AuthCodeResponse = {
       error: decodeParamValue(searchParams, "error"),
@@ -232,9 +231,9 @@ export abstract class BaseAuth implements Auth {
       traceId: decodeParamValue(searchParams, "trace_id"),
       code: decodeParamValue(searchParams, "code"),
       state: decodeParamValue(searchParams, "state"),
-      sessionId: authSessionStore.value.stateObject.sessionId,
-      correlationId: authSessionStore.value.stateObject.correlationId,
-      requestId: authSessionStore.value.stateObject.requestId,
+      sessionId: stateObject.sessionId,
+      correlationId: stateObject.correlationId,
+      requestId: stateObject.requestId,
     } as AuthCodeResponse;
 
     return authCodeResponse;

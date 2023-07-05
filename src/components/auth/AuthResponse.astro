@@ -22,12 +22,13 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { ApiResponse } from "@src/services/api";
   import { TokenApiRequest } from "@src/services/api/auth";
+  import { ApiResponse } from "@src/services/api/types";
+  import { appSessionStore } from "@src/services/app/appStore";
   import { msaAuth } from "@src/services/app/auth";
   import { authApi } from "@src/services/app/authApi";
-  import { AuthResponse, TokenResponse } from "@src/services/auth";
   import { authLocalStore } from "@src/services/auth/authStore";
+  import { AuthResponse, TokenResponse } from "@src/services/auth/types";
   import { generateGuid } from "@src/utils/uuid";
 
   const authenticating = document.getElementById("authenticating") as HTMLElement;
@@ -83,7 +84,7 @@ changeLanguage("en");
 
   const getApiToken = async function getApiToken(tokenResponse: TokenResponse): Promise<void> {
     const tokenRequest: TokenApiRequest = {
-      sessionId: tokenResponse.sessionId as string,
+      sessionId: appSessionStore.value.sessionId,
       correlationId: tokenResponse.correlationId as string,
       requestId: generateGuid(),
       idToken: tokenResponse.idToken as string,

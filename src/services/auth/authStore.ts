@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { MapStore, StorageType, defineMapStore } from "@src/services/stores";
-import { PkceCodes, StateObject, TokenKeys } from ".";
+import { PkceCodes, StateObject, TokenKeys } from "./types";
 
 export type AuthLocalStore = {
   debugDoNotRedirectOnSignin: boolean;

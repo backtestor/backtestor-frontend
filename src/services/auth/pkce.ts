@@ -1,5 +1,5 @@
 import { urlEncodeArr } from "@src/utils/base64";
-import { PkceCodes } from ".";
+import { PkceCodes } from "./types";
 
 const RANDOM_BYTE_ARR_LENGTH = 32;
 const S256_HASH_ALG = "SHA-256";

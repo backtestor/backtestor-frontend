@@ -1,19 +1,19 @@
-import { Logger, defineLogger } from "@src/services/logger";
+import { BaseAuth } from ".";
+import { authSessionStore } from "./authStore";
 import {
   Auth,
   AuthCodeRequest,
   AuthCodeResponse,
   AuthOptions,
-  BaseAuth,
   GrantType,
+  Logger,
   ResponseMode,
   ResponseType,
-} from ".";
-import { authSessionStore } from "./authStore";
+} from "./types";
 
-export const defineMsaAuthOptions = function defineMsaAuthOptions(logger?: Logger): AuthOptions {
+export const defineMsaAuthOptions = function defineMsaAuthOptions(logger: Logger): AuthOptions {
   const options: AuthOptions = {
-    logger: logger ?? defineLogger(),
+    logger,
     clientId: import.meta.env.PUBLIC_MSA_CLIENT_ID,
     redirectUri: import.meta.env.PUBLIC_MSA_REDIRECT_URI,
     postLogoutRedirectUri: import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI,
