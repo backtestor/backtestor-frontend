@@ -22,14 +22,13 @@ changeLanguage("en");
 </header>
 
 <script>
-  import { TokenApiRequest } from "@src/services/api/auth";
+  import { defineTokenApiRequest } from "@src/services/api/auth";
   import { ApiResponse } from "@src/services/api/types";
   import { appSessionStore } from "@src/services/app/appStore";
   import { authApi } from "@src/services/app/authApi";
   import { msaAuth } from "@src/services/app/ip";
   import { ipLocalStore } from "@src/services/ip/ipStore";
   import { AuthResponse, TokenResponse } from "@src/services/ip/types";
-  import { generateGuid } from "@src/utils/uuid";
 
   const authenticating = document.getElementById("authenticating") as HTMLElement;
   const authenticationSucceed = document.getElementById("authentication-succeed") as HTMLElement;
@@ -83,13 +82,13 @@ changeLanguage("en");
   };
 
   const getApiToken = async function getApiToken(tokenResponse: TokenResponse): Promise<void> {
-    const tokenRequest: TokenApiRequest = {
-      sessionId: appSessionStore.value.sessionId,
-      correlationId: tokenResponse.correlationId as string,
-      requestId: generateGuid(),
-      idToken: tokenResponse.idToken as string,
-    };
-    const apiresponse: ApiResponse = await authApi.getToken(tokenRequest);
+    const apiresponse: ApiResponse = await authApi.getToken(
+      defineTokenApiRequest(
+        tokenResponse.idToken as string,
+        appSessionStore.value.sessionId,
+        tokenResponse.correlationId as string,
+      ),
+    );
     if (apiresponse.error) {
       showError(apiresponse.error.message, null, null, apiresponse.executedAtUtc, apiresponse.correlationId);
       return;

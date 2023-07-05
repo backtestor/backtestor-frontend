@@ -1,3 +1,4 @@
+import { generateGuid } from "@src/utils/uuid";
 import { ApiOptions, BaseApi, defineApiOptions } from ".";
 import { ApiResponse, BaseApiRequest, HeaderName, Logger } from "./types";
 
@@ -110,4 +111,20 @@ export const defineAuthApiOptions = function defineAuthApiOptions(logger: Logger
 export const defineAuthApi = function defineAuthApi(authApiOptions: AuthApiOptions): AuthApi {
   const auth = new AuthApiImpl(authApiOptions);
   return auth;
+};
+
+export const defineTokenApiRequest = function defineTokenApiRequest(
+  idToken: string,
+  sessionId?: string,
+  correlationId?: string,
+  requestId?: string,
+): TokenApiRequest {
+  const request: TokenApiRequest = {
+    sessionId: sessionId ?? generateGuid(),
+    correlationId: correlationId ?? generateGuid(),
+    requestId: requestId ?? generateGuid(),
+    idToken,
+  };
+
+  return request;
 };

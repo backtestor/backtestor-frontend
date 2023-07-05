@@ -10,7 +10,6 @@ import {
   InitializedAuthCodeRequest,
   Logger,
   OIDC_DEFAULT_SCOPES,
-  OIDC_SCOPES,
   PkceCodes,
   StateObject,
   TokenKeys,
@@ -379,8 +378,8 @@ export abstract class BaseAuth implements Auth {
 }
 
 export const defineAuthCodeRequest = function defineAuthCodeRequest(
-  redirectStartPage?: string,
-  scope?: string[],
+  redirectStartPage: string,
+  scope: string[],
   sessionId?: string,
   correlationId?: string,
   requestId?: string,
@@ -389,8 +388,8 @@ export const defineAuthCodeRequest = function defineAuthCodeRequest(
     sessionId: sessionId ?? generateGuid(),
     correlationId: correlationId ?? generateGuid(),
     requestId: requestId ?? generateGuid(),
-    scope: scope ?? OIDC_SCOPES,
-    redirectStartPage: redirectStartPage ?? window.location.href,
+    scope,
+    redirectStartPage,
   };
 
   return request;

@@ -22,8 +22,9 @@ changeLanguage("en");
 
 <script>
   import { appSessionStore } from "@src/services/app/appStore";
-  import { msaAuth } from "@src/services/app/ip";
-  import { defineAuthCodeRequest } from "@src/services/ip";
+import { msaAuth } from "@src/services/app/ip";
+import { defineAuthCodeRequest } from "@src/services/ip";
+import { OIDC_SCOPES } from "@src/services/ip/types";
 
   const signInButton = document.getElementById("signin-button-msa") as HTMLElement;
 
@@ -32,7 +33,7 @@ changeLanguage("en");
 
   // Functions
   const signInMsa = function signInMsa(): void {
-    msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, undefined, appSessionStore.value.sessionId));
+    msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, OIDC_SCOPES, appSessionStore.value.sessionId));
   };
 
   // Events
