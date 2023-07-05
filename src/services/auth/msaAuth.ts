@@ -52,7 +52,7 @@ class MsaAuth extends BaseAuth {
     return authCodeUrl;
   }
 
-  getTokenQueryString(authCodeResponse: AuthCodeResponse): string {
+  getTokenFormString(authCodeResponse: AuthCodeResponse): string {
     this.logger.trace("getTokenQueryString called");
     const parameters: Map<string, string> = new Map<string, string>();
 

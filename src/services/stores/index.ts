@@ -39,13 +39,15 @@ class MapStoreImpl<T extends Record<string, unknown>> implements MapStore<T> {
         const storageKey: string = this.getStorageKey(key);
         const storageValue: string | null = this.storage.getItem(storageKey);
         let propertyValue: T[Extract<keyof T, string>] = this.initialValue[key];
-        if (storageValue !== null)
-          if (typeof propertyValue === "string") propertyValue = storageValue as T[Extract<keyof T, string>];
-          else if (typeof propertyValue === "number")
-            propertyValue = Number(storageValue) as T[Extract<keyof T, string>];
-          else if (typeof propertyValue === "boolean")
-            propertyValue = (storageValue.toLowerCase() === "true") as T[Extract<keyof T, string>];
-          else propertyValue = JSON.parse(storageValue) as typeof propertyValue;
+        if (storageValue === null)
+          if (typeof value === "undefined") this.storage.removeItem(storageKey);
+          else if (typeof propertyValue === "string") this.storage.setItem(storageKey, propertyValue);
+          else this.storage.setItem(storageKey, JSON.stringify(propertyValue));
+        else if (typeof propertyValue === "string") propertyValue = storageValue as T[Extract<keyof T, string>];
+        else if (typeof propertyValue === "number") propertyValue = Number(storageValue) as T[Extract<keyof T, string>];
+        else if (typeof propertyValue === "boolean")
+          propertyValue = (storageValue.toLowerCase() === "true") as T[Extract<keyof T, string>];
+        else propertyValue = JSON.parse(storageValue) as typeof propertyValue;
 
         this.value[key] = propertyValue;
       }

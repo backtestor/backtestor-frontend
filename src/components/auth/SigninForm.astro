@@ -21,6 +21,7 @@ changeLanguage("en");
 </header>
 
 <script>
+  import { appSessionStore } from "@src/services/app/appStore";
   import { msaAuth } from "@src/services/app/auth";
   import { defineAuthCodeRequest } from "@src/services/auth";
 
@@ -31,7 +32,7 @@ changeLanguage("en");
 
   // Functions
   const signInMsa = function signInMsa(): void {
-    msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl));
+    msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, undefined, appSessionStore.value.sessionId));
   };
 
   // Events

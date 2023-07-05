@@ -79,7 +79,9 @@ export const ContentType = {
 export type ContentType = (typeof ContentType)[keyof typeof ContentType];
 
 export interface StateObject {
+  sessionId: string;
   correlationId: string;
+  requestId: string;
   interactionType: InteractionType;
   redirectStartPage?: string;
   meta?: Record<string, string>;
@@ -106,8 +108,9 @@ export interface AuthResponse {
   errorCode?: string | null;
   timestamp?: string | null;
   traceId?: string | null;
+  sessionId?: string | null;
   correlationId?: string | null;
-  stack?: string | null;
+  requestId?: string | null;
 }
 
 export interface AuthCodeResponse extends AuthResponse {
@@ -127,7 +130,9 @@ export interface TokenResponse extends AuthResponse {
 }
 
 export interface AuthRequest {
-  correlationId?: string | undefined;
+  sessionId: string;
+  correlationId: string;
+  requestId: string;
 }
 
 export interface BaseAuthRequest extends AuthRequest {

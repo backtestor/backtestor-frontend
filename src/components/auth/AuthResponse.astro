@@ -78,10 +78,13 @@ changeLanguage("en");
     }
 
     const tokenResponse: TokenResponse = authResponse as TokenResponse;
+    await getApiToken(tokenResponse);
+  };
 
+  const getApiToken = async function getApiToken(tokenResponse: TokenResponse): Promise<void> {
     const tokenRequest: TokenApiRequest = {
-      sessionId: generateGuid(),
-      correlationId: generateGuid(),
+      sessionId: tokenResponse.sessionId as string,
+      correlationId: tokenResponse.correlationId as string,
       requestId: generateGuid(),
       idToken: tokenResponse.idToken as string,
     };

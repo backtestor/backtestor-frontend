@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 
+import { loggerLocalStore } from "./loggerStore";
 import { LogLevel, Logger, LoggerHook, LoggerOptions } from "./types";
 
 export * from "./types";
@@ -125,7 +126,7 @@ class LoggerImpl implements Logger {
 }
 
 export const defineLogger = function defineLogger(loggerLevel?: string): Logger {
-  const logLevelString: string = loggerLevel ?? import.meta.env.PUBLIC_LOG_LEVEL;
+  const logLevelString: string = loggerLevel ?? loggerLocalStore.value.loggerLevel;
   const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
   const options: LoggerOptions = {
     logLevel,
@@ -135,13 +136,13 @@ export const defineLogger = function defineLogger(loggerLevel?: string): Logger 
 };
 
 export const addNullHook = function addNullHook(logger: Logger, loggerLevel?: string): void {
-  const logLevelString: string = loggerLevel ?? import.meta.env.PUBLIC_LOG_LEVEL;
+  const logLevelString: string = loggerLevel ?? loggerLocalStore.value.loggerLevel;
   const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
   logger.addHook(logLevel, nullLoggerCallback);
 };
 
 export const addConsoleLogger = function addConsoleLogger(logger: Logger, loggerLevel?: string): void {
-  const logLevelString: string = loggerLevel ?? import.meta.env.PUBLIC_LOG_LEVEL;
+  const logLevelString: string = loggerLevel ?? loggerLocalStore.value.loggerLevel;
   const logLevel: LogLevel = mapStringToLogLevel(logLevelString);
   logger.addHook(logLevel, consoleLoggerCallback);
 };

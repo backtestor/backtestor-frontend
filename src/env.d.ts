@@ -1,8 +1,6 @@
 /// <reference path="../.astro/types.d.ts" />
 
 interface ImportMetaEnv {
-  readonly PUBLIC_LOG_LEVEL: string;
-
   readonly PUBLIC_MSA_CLIENT_ID: string;
   readonly PUBLIC_MSA_REDIRECT_URI: string;
   readonly PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI: string;
