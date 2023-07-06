@@ -37,7 +37,6 @@ export interface TokenKeys {
   idToken: string;
   accessToken: string;
   refreshToken: string;
-  expiresAtUtc: Date;
 }
 
 export interface AuthResponse {

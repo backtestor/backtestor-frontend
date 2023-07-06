@@ -41,13 +41,6 @@ const getCurrentUTCTimestamp = (): string => {
   return `${utcString ?? ""} UTC`;
 };
 
-const addSecondsToCurrentDateTime = (seconds: number): Date => {
-  const now = new Date();
-  const milliseconds: number = seconds * 1000;
-  const futureDateTime = new Date(now.getTime() + milliseconds);
-  return futureDateTime;
-};
-
 const decodeParamValue = function decodeParamValue(searchParams: URLSearchParams, paramName: string): string | null {
   const encodedValue: string | null = searchParams.get(paramName);
   return encodedValue === null ? null : decodeURIComponent(encodedValue);
@@ -181,14 +174,13 @@ export abstract class BaseAuth implements Auth {
     const authCodeResponse: AuthCodeResponse = this.parseAuthCodeResponse();
     this.validateAuthCodeResponse(authCodeResponse);
 
-    if (authCodeResponse.error)
-      this.logger.warning(`getAuthCode not succeeded: ${JSON.stringify(authCodeResponse, null, 2)}`);
-    else this.logger.debug(`getAuthCode succeeded: ${JSON.stringify(authCodeResponse, null, 2)}`);
-
     if (authCodeResponse.error) {
       this.cleanStoreForAuthRequest();
+      this.logger.warning(`getAuthCode not succeeded: ${JSON.stringify(authCodeResponse, null, 2)}`);
       return authCodeResponse;
     }
+
+    this.logger.debug(`getAuthCode succeeded: ${JSON.stringify(authCodeResponse, null, 2)}`);
 
     const tokenResponse: TokenResponse = await this.exchangeAuthCodeForToken(authCodeResponse);
     if (tokenResponse.error) {
@@ -206,15 +198,14 @@ export abstract class BaseAuth implements Auth {
 
   updateStoreWithTokenResponse(tokenResponse: TokenResponse): void {
     this.logger.trace("updateStoreWithTokenResponse called");
-    const expiresAtUtc: Date = addSecondsToCurrentDateTime(tokenResponse.expiresIn ?? 0);
     const tokenKeys: TokenKeys = {
       authority: this.authority,
       idToken: tokenResponse.idToken ?? "",
       accessToken: tokenResponse.accessToken ?? "",
       refreshToken: tokenResponse.refreshToken ?? "",
-      expiresAtUtc,
     };
     ipSessionStore.setKey("tokenKeys", tokenKeys);
+    ipLocalStore.setKey("authority", this.authority);
   }
 
   protected parseAuthCodeResponse(): AuthCodeResponse {
@@ -225,7 +216,7 @@ export abstract class BaseAuth implements Auth {
       error: decodeParamValue(searchParams, "error"),
       errorDescription: decodeParamValue(searchParams, "error_description"),
       errorCode: decodeParamValue(searchParams, "error_codes"),
-      timestamp: decodeParamValue(searchParams, "timestamp") ?? getCurrentUTCTimestamp(),
+      timestamp: decodeParamValue(searchParams, "timestamp"),
       traceId: decodeParamValue(searchParams, "trace_id"),
       code: decodeParamValue(searchParams, "code"),
       state: decodeParamValue(searchParams, "state"),
@@ -294,75 +285,76 @@ export abstract class BaseAuth implements Auth {
       });
 
       if (!response.ok) {
-        const errorResponse = {
-          ...this.parseErrorResponse("request_failed", response),
-          sessionId: authCodeResponse.sessionId,
-          correlationId: authCodeResponse.correlationId,
-          requestId: authCodeResponse.requestId,
-        } as AuthResponse;
+        const errorResponse: AuthResponse = this.parseErrorResponse("request_failed", response, authCodeResponse);
         this.logger.warning(`exchangeAuthCodeForToken failed: ${JSON.stringify(errorResponse, null, 2)}`);
         return errorResponse;
       }
 
       const tokenResponseJson: string = JSON.stringify(await response.json());
-      const tokenResponse = {
-        ...this.parseTokenResponse(tokenResponseJson),
-        sessionId: authCodeResponse.sessionId,
-        correlationId: authCodeResponse.correlationId,
-        requestId: authCodeResponse.requestId,
-      } as TokenResponse;
+      const tokenResponse: TokenResponse = this.parseTokenResponse(tokenResponseJson, authCodeResponse);
 
-      if (authCodeResponse.error)
+      if (authCodeResponse.error) {
         this.logger.warning(`exchangeAuthCodeForToken not succeeded: ${JSON.stringify(tokenResponse, null, 2)}`);
-      else this.logger.debug(`exchangeAuthCodeForToken succeeded: ${JSON.stringify(tokenResponse, null, 2)}`);
+        return tokenResponse;
+      }
+
+      this.logger.debug(`exchangeAuthCodeForToken succeeded: ${JSON.stringify(tokenResponse, null, 2)}`);
 
       return tokenResponse;
     } catch (error) {
       const err = error as Error | null;
-      const errorResponse = {
-        ...this.parseError("request_error", err),
-        sessionId: authCodeResponse.sessionId,
-        correlationId: authCodeResponse.correlationId,
-        requestId: authCodeResponse.requestId,
-      } as AuthResponse;
+      const errorResponse: AuthResponse = this.parseError("request_error", err, authCodeResponse);
       this.logger.error(`exchangeAuthCodeForToken error: ${JSON.stringify(errorResponse, null, 2)}`);
       return errorResponse;
     }
   }
 
-  protected parseErrorResponse(errorCode: string, response: Response): AuthResponse {
+  protected parseErrorResponse(
+    errorCode: string,
+    response: Response,
+    authCodeResponse: AuthCodeResponse,
+  ): AuthResponse {
     this.logger.trace("parseErrorResponse called");
-    const errorResponse: AuthResponse = {
+    const errorResponse = {
       error: errorCode,
       errorDescription: response.statusText,
       errorCode: response.status.toString(),
       timestamp: getCurrentUTCTimestamp(),
-    };
+      sessionId: authCodeResponse.sessionId,
+      correlationId: authCodeResponse.correlationId,
+      requestId: authCodeResponse.requestId,
+    } as AuthResponse;
     return errorResponse;
   }
 
-  protected parseError(errorCode: string, error: Error | null): AuthResponse {
+  protected parseError(errorCode: string, error: Error | null, authCodeResponse: AuthCodeResponse): AuthResponse {
     this.logger.trace("parseError called");
-    const errorResponse: AuthResponse = {
+    const errorResponse = {
       error: errorCode,
       errorDescription: error?.message ?? "Unknown error",
       errorCode: error?.name ?? "Unknown",
       timestamp: getCurrentUTCTimestamp(),
-    };
+      sessionId: authCodeResponse.sessionId,
+      correlationId: authCodeResponse.correlationId,
+      requestId: authCodeResponse.requestId,
+    } as AuthResponse;
     return errorResponse;
   }
 
-  protected parseTokenResponse(tokenResponseJson: string): TokenResponse {
+  protected parseTokenResponse(tokenResponseJson: string, authCodeResponse: AuthCodeResponse): TokenResponse {
     this.logger.trace("parseTokenResponse called");
     const parsedResponse: Record<string, unknown> = JSON.parse(tokenResponseJson);
-    const tokenResponse: TokenResponse = {} as TokenResponse;
+    const tokenResponse = {
+      sessionId: authCodeResponse.sessionId,
+      correlationId: authCodeResponse.correlationId,
+      requestId: authCodeResponse.requestId,
+    } as TokenResponse;
 
     if (Object.hasOwn(parsedResponse, "error")) tokenResponse.error = parsedResponse["error"] as string;
     if (Object.hasOwn(parsedResponse, "error_description"))
       tokenResponse.errorDescription = parsedResponse["error_description"] as string;
     if (Object.hasOwn(parsedResponse, "error_codes")) tokenResponse.errorCode = parsedResponse["error_codes"] as string;
     if (Object.hasOwn(parsedResponse, "timestamp")) tokenResponse.timestamp = parsedResponse["timestamp"] as string;
-    else tokenResponse.timestamp = getCurrentUTCTimestamp();
     if (Object.hasOwn(parsedResponse, "trace_id")) tokenResponse.traceId = parsedResponse["trace_id"] as string;
     if (Object.hasOwn(parsedResponse, "access_token"))
       tokenResponse.accessToken = parsedResponse["access_token"] as string;

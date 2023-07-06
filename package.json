@@ -26,13 +26,12 @@
     "preview": "astro preview --verbose",
     "start": "node ./dist/server/entry.mjs",
     "lint": "astro check && tsc --noEmit",
-    "update": "ncu -u --target minor && npm update --save && npm install",
+    "update": "ncu -u && npm update --save && npm install",
     "prettier": "npx prettier --check .",
     "prettier-write": "npx prettier --write .",
     "webhint": "hint http://localhost:8080"
   },
   "devDependencies": {
-    "@nikolastojicic/prettier-plugin-organize-attributes": "^0.1.0",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",

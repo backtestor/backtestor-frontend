@@ -1,10 +1,7 @@
 import { generateGuid } from "@src/utils/uuid";
 import { ApiOptions, BaseApi, defineApiOptions } from ".";
+import { authSessionStore } from "./authStore";
 import { ApiResponse, BaseApiRequest, HeaderName, Logger } from "./types";
-
-export interface TokenApiRequest extends BaseApiRequest {
-  idToken: string;
-}
 
 const AuthApiPath = {
   TOKEN: "/v1/auth/token",
@@ -19,6 +16,17 @@ const ContentType = {
 } as const;
 
 type ContentType = (typeof ContentType)[keyof typeof ContentType];
+
+export interface TokenApiRequest extends BaseApiRequest {
+  idToken: string;
+}
+
+export interface TokenApiResponse {
+  token: string;
+  email: string;
+  name: string;
+  expiresAtUTC: Date;
+}
 
 export interface AuthApiOptions extends ApiOptions {
   tokenPath: AuthApiPath;
@@ -69,8 +77,14 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
         return errorResponse;
       })) as ApiResponse;
 
-      if (apiResponse.error) this.logger.warning(`getToken not succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
-      else this.logger.debug(`getToken succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
+      if (apiResponse.error) {
+        this.logger.warning(`getToken not succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
+        return apiResponse;
+      }
+
+      this.logger.debug(`getToken succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
+      const tokenResult: TokenApiResponse = apiResponse.result as TokenApiResponse;
+      authSessionStore.setKey("token", tokenResult);
 
       return apiResponse;
     } catch (error) {
