@@ -9,7 +9,6 @@
     "astro-i18next.config.ts",
     "astro.config.ts",
     "d.ts",
-    "postcss.config.cjs",
     "tailwind.config.cjs"
   ],
   "exclude": ["./dist", "./node_modules"],
