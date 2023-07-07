@@ -30,7 +30,10 @@ const { language } = i18next;
   </button>
   <div slot="menu-content" role="menu" class="bg-base-200 ltr:right-0 rtl:left-0" aria-labelledby="profile-menu">
     <ul>
-      <li><a role="menuitem" href="/">{t("components.auth.signin-profile.signout")}</a></li>
+      <li>
+        <a role="menuitem" href={addTrailingSlash(localizePath("/signout", language))}
+          >{t("components.auth.signin-profile.signout")}</a>
+      </li>
     </ul>
   </div>
 </PMenu>
@@ -38,27 +41,17 @@ const { language } = i18next;
 <script>
   import { isAuthenticated } from "@src/services/app/auth";
 
-  const signInButton = document.getElementById("signin-button") as HTMLElement;
+  const signinButton = document.getElementById("signin-button") as HTMLElement;
   const profileMenu = document.getElementById("profile-menu") as HTMLElement;
 
   // Elements Update
   const updateAuthElements = function updateAuthElements(): void {
     const isAuth = isAuthenticated();
 
-    signInButton.classList.toggle("hidden", isAuth);
+    signinButton.classList.toggle("hidden", isAuth);
     profileMenu.classList.toggle("hidden", !isAuth);
   };
 
-  // View Update
-  const initView = function initView(): void {
-    // Intended.
-  };
-
-  // State Update
-
-  // Events
-
   // Init
-  initView();
   updateAuthElements();
 </script>

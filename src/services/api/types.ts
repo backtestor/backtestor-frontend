@@ -18,7 +18,7 @@ export const HeaderName = {
 
 export type HeaderName = (typeof HeaderName)[keyof typeof HeaderName];
 
-export interface BaseApiRequest {
+export interface ApiRequest {
   sessionId: string;
   correlationId: string;
   requestId: string;
@@ -29,12 +29,19 @@ export interface ErrorResponse {
   stack?: string;
 }
 
-export interface ApiResponse {
+export interface BaseApiResponse {
   status?: string;
+  executedAtUtc?: string;
+  error?: ErrorResponse;
+}
+
+export interface ApiResponse extends BaseApiResponse {
   sessionID?: string;
   correlationId?: string;
   requestID?: string;
-  executedAtUtc?: string;
   result?: unknown;
-  error?: ErrorResponse;
+}
+
+export interface Httpclient {
+  post<T extends BaseApiResponse>(name: string, url: string, requestInit: RequestInit): Promise<T>;
 }

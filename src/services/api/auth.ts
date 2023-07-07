@@ -1,7 +1,7 @@
 import { generateGuid } from "@src/utils/uuid";
-import { ApiOptions, BaseApi, defineApiOptions } from ".";
+import { ApiOptions, BaseApi, defineApiOptions, getAuthHeaders } from ".";
 import { authSessionStore } from "./authStore";
-import { ApiResponse, BaseApiRequest, HeaderName, Logger } from "./types";
+import { ApiRequest, ApiResponse, HeaderName, Httpclient, Logger } from "./types";
 
 const AuthApiPath = {
   TOKEN: "/v1/auth/token",
@@ -17,7 +17,7 @@ const ContentType = {
 
 type ContentType = (typeof ContentType)[keyof typeof ContentType];
 
-export interface TokenApiRequest extends BaseApiRequest {
+export interface TokenApiRequest extends ApiRequest {
   idToken: string;
 }
 
@@ -36,6 +36,7 @@ export interface AuthApiOptions extends ApiOptions {
 
 export interface AuthApi {
   getToken(request: TokenApiRequest): Promise<ApiResponse>;
+  logout(request: ApiRequest): Promise<ApiResponse>;
 }
 
 export class AuthApiImpl extends BaseApi implements AuthApi {
@@ -52,11 +53,62 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
     this.logoutPath = authApiOptions.logoutPath;
   }
 
+  async logout(request: ApiRequest): Promise<ApiResponse> {
+    this.logger.verbose("logout called");
+    const tokenUrl = `${this.baseUrl}${this.logoutPath}`;
+    const headers: HeadersInit = {
+      ...this.getBaseHeaders(request),
+      ...getAuthHeaders(),
+    };
+
+    try {
+      const response = await fetch(tokenUrl, {
+        method: "POST",
+        headers,
+      });
+
+      let apiResponse: ApiResponse = {};
+
+      if (response.headers.get("Content-Type")?.includes("application/json"))
+        apiResponse = (await response.json().catch((error): ApiResponse => {
+          const errorResponse = {
+            ...this.parseError("logout request failed", error as Error | null),
+          } as ApiResponse;
+          this.logger.warning(`logout failed: ${JSON.stringify(errorResponse, null, 2)}`);
+          return errorResponse;
+        })) as ApiResponse;
+      else if (response.status < 400)
+        apiResponse = {
+          status: response.status.toString(),
+        };
+      else
+        apiResponse = {
+          ...this.parseError(response.status.toString(), new Error(response.statusText)),
+        };
+
+      if (apiResponse.error) {
+        this.logger.warning(`logout not succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
+        return apiResponse;
+      }
+
+      this.logger.debug(`logout succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
+      authSessionStore.deleteKey("token");
+
+      return apiResponse;
+    } catch (error) {
+      const errorResponse = {
+        ...this.parseError("logout request network error", error as Error | null),
+      } as ApiResponse;
+      this.logger.error(`logout error: ${JSON.stringify(errorResponse, null, 2)}`);
+      return errorResponse;
+    }
+  }
+
   async getToken(request: TokenApiRequest): Promise<ApiResponse> {
     this.logger.verbose("getToken called");
     const tokenUrl = `${this.baseUrl}${this.tokenPath}`;
     const headers: HeadersInit = {
-      ...this.getHeaders(request),
+      ...this.getBaseHeaders(request),
       [HeaderName.CONTENT_TYPE]: ContentType.URL_FORM_CONTENT_TYPE,
     };
     const formString: string = this.getTokenFormString(request);
@@ -71,7 +123,7 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
       const apiResponse: ApiResponse = (await response.json().catch((error): ApiResponse => {
         const err = error as Error | null;
         const errorResponse = {
-          ...this.parseError("request_failed", err),
+          ...this.parseError("getToken request failed", err),
         } as ApiResponse;
         this.logger.warning(`getToken failed: ${JSON.stringify(errorResponse, null, 2)}`);
         return errorResponse;
@@ -90,7 +142,7 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
     } catch (error) {
       const err = error as Error | null;
       const errorResponse = {
-        ...this.parseError("request_error", err),
+        ...this.parseError("getToken request network error", err),
       } as ApiResponse;
       this.logger.error(`getToken error: ${JSON.stringify(errorResponse, null, 2)}`);
       return errorResponse;
@@ -111,8 +163,11 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
   }
 }
 
-export const defineAuthApiOptions = function defineAuthApiOptions(logger: Logger): AuthApiOptions {
-  const apiOptions: ApiOptions = defineApiOptions(logger);
+export const defineAuthApiOptions = function defineAuthApiOptions(
+  logger: Logger,
+  httpclient: Httpclient,
+): AuthApiOptions {
+  const apiOptions: ApiOptions = defineApiOptions(logger, httpclient);
   const options: AuthApiOptions = {
     ...apiOptions,
     tokenPath: AuthApiPath.TOKEN,

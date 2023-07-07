@@ -1,0 +1,93 @@
+---
+import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
+import { changeLanguage, t } from "i18next";
+
+changeLanguage("en");
+---
+
+<!-- Signin Form Component -->
+<header class="flex flex-col items-center justify-center">
+  <LogoLinkToHomepage />
+  <h1 id="signing-out">{t("components.auth.signout-form.signing-out")}</h1>
+  <h1 id="signgout-succeed" hidden>{t("components.auth.signout-form.signgout-succeed")}</h1>
+  <h1 id="signgout-failed" hidden>{t("components.auth.signout-form.signgout-failed")}</h1>
+</header>
+<main class="flex flex-col items-center justify-center">
+  <p id="signing-out-message">{t("components.auth.signout-form.signing-out-message")}</p>
+  <p id="signgout-succeed-message" hidden>{t("components.auth.signout-form.signgout-succeed-message")}</p>
+  <p id="signgout-failed-message" hidden>{t("components.auth.signout-form.signgout-failed-message")}</p>
+  <p id="error" hidden>...</p>
+  <p id="error-code" hidden>...</p>
+  <p id="error-description" hidden>...</p>
+  <p id="timestamp" hidden>...</p>
+  <p id="correlation-id" hidden>...</p>
+</main>
+
+<script>
+  import { defineApiRequest } from "@src/services/api";
+  import { ApiResponse } from "@src/services/api/types";
+  import { appSessionStore } from "@src/services/app/appStore";
+  import { authApi } from "@src/services/app/authApi";
+  import { ipLocalStore } from "@src/services/ip/ipStore";
+
+  const signingOut = document.getElementById("signing-out") as HTMLElement;
+  const signingOutMessage = document.getElementById("signing-out-message") as HTMLElement;
+  const signoutSucceed = document.getElementById("signgout-succeed") as HTMLElement;
+  const signoutSucceedMessage = document.getElementById("signgout-succeed-message") as HTMLElement;
+  const signoutFailed = document.getElementById("signgout-failed") as HTMLElement;
+  const signoutFailedMessage = document.getElementById("signgout-failed-message") as HTMLElement;
+  const errorElement = document.getElementById("error") as HTMLElement;
+  const errorCodeElement = document.getElementById("error-code") as HTMLElement;
+  const errorDescriptionElement = document.getElementById("error-description") as HTMLElement;
+  const timestampElement = document.getElementById("timestamp") as HTMLElement;
+  const correlationIdElement = document.getElementById("correlation-id") as HTMLElement;
+  const logoLinkToHome = document.getElementById("logo-link-to-home") as HTMLAnchorElement;
+
+  // Functions
+  const showError = function showError(
+    error?: string | null,
+    errorCode?: string | null,
+    errorDescription?: string | null,
+    timestamp?: string | null,
+    correlationId?: string | null,
+  ): void {
+    signingOut.hidden = true;
+    signingOutMessage.hidden = true;
+    signoutSucceed.hidden = true;
+    signoutSucceedMessage.hidden = true;
+    signoutFailed.hidden = false;
+    signoutFailedMessage.hidden = false;
+
+    errorElement.innerText = `${error}`;
+    errorCodeElement.innerText = `${errorCode}`;
+    errorDescriptionElement.innerText = `${errorDescription}`;
+    timestampElement.innerText = `${timestamp}`;
+    correlationIdElement.innerText = `${correlationId}`;
+
+    errorElement.hidden = typeof error !== "string";
+    errorCodeElement.hidden = typeof errorCode !== "string";
+    errorDescriptionElement.hidden = typeof errorDescription !== "string";
+    timestampElement.hidden = typeof timestamp !== "string";
+    correlationIdElement.hidden = typeof correlationId !== "string";
+  };
+
+  const signout = async function signout(): Promise<void> {
+    const apiresponse: ApiResponse = await authApi.logout(defineApiRequest(appSessionStore.value.sessionId));
+    if (apiresponse.error) {
+      showError(apiresponse.error.message, null, null, apiresponse.executedAtUtc, apiresponse.correlationId);
+      return;
+    }
+
+    signingOut.hidden = true;
+    signingOutMessage.hidden = true;
+    signoutSucceed.hidden = false;
+    signoutSucceedMessage.hidden = false;
+    signoutFailed.hidden = true;
+    signoutFailedMessage.hidden = true;
+
+    if (!ipLocalStore.value.debugDoNotRedirectAfterSignout) window.location.assign(logoLinkToHome.href);
+  };
+
+  // Init
+  await signout();
+</script>

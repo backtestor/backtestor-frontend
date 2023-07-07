@@ -1,0 +1,14 @@
+---
+import SignoutForm from "@src/components/auth/SignoutForm.astro";
+import EmptyLayout from "@src/layouts/EmptyLayout.astro";
+import { changeLanguage, t } from "i18next";
+
+changeLanguage("en");
+
+const title = t("pages.signin.title");
+const description = t("pages.signin.description");
+---
+
+<EmptyLayout title={title} description={description}>
+  <SignoutForm />
+</EmptyLayout>

@@ -6,12 +6,14 @@ export type IpLocalStore = {
   authority: string;
   debugDoNotRedirectOnSignin: boolean;
   debugDoNotRedirectAfterSigninCallback: boolean;
+  debugDoNotRedirectAfterSignout: boolean;
 };
 
 const initialLocalValue: IpLocalStore = {
   authority: "",
   debugDoNotRedirectOnSignin: false,
   debugDoNotRedirectAfterSigninCallback: false,
+  debugDoNotRedirectAfterSignout: false,
 };
 
 export type IpSessionStore = {

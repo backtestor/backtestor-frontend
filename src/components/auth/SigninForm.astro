@@ -1,27 +1,25 @@
 ---
-import PSvg from "@src/components/generic/PSvg.astro";
+import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
 import { changeLanguage, t } from "i18next";
 import { Trans } from "astro-i18next/components";
-import { addTrailingSlash } from "@src/i18n";
-import { localizePath } from "astro-i18next";
 
 changeLanguage("en");
 ---
 
 <!-- Signin Form Component -->
 <header class="flex flex-col items-center justify-center">
-  <a href={addTrailingSlash(localizePath("/"))} title={t("pages.index.tooltip")}>
-    <PSvg name="bt" svgClass="h-40" />
-  </a>
+  <LogoLinkToHomepage />
   <h1>
     <Trans i18nKey="components.auth.signin-form.header">
       Sign in to <span class="philosopher">Backtestor</span>
     </Trans>
   </h1>
-  <button class="btn btn-outline" id="signin-button-msa" type="button"
-    >{t("components.auth.signin-form.signin-msa")}</button
-  >
 </header>
+<main class="flex flex-col items-center justify-center">
+  <button class="btn btn-outline" id="signin-button-msa" type="button">
+    {t("components.auth.signin-form.signin-msa")}
+  </button>
+</main>
 
 <script>
   import { appSessionStore } from "@src/services/app/appStore";
@@ -29,23 +27,23 @@ changeLanguage("en");
   import { defineAuthCodeRequest } from "@src/services/ip";
   import { OIDC_SCOPES } from "@src/services/ip/types";
 
-  const signInButton = document.getElementById("signin-button-msa") as HTMLElement;
+  const signinButtonMsa = document.getElementById("signin-button-msa") as HTMLElement;
 
   const urlParams = new URLSearchParams(window.location.search);
   const returnUrl: string = urlParams.get("return") ?? "/";
 
   // Functions
-  const signInMsa = function signInMsa(): void {
+  const signinMsa = function signinMsa(): void {
     msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, OIDC_SCOPES, appSessionStore.value.sessionId));
   };
 
   // Events
-  const onClickSignInMsa = function onClickSignInMsa(event: Event): void {
+  const onClickSigninMsa = function onClickSigninMsa(event: Event): void {
     if (!event.currentTarget) return;
 
-    signInMsa();
+    signinMsa();
   };
 
   // Init
-  signInButton.addEventListener("click", onClickSignInMsa, { passive: true });
+  signinButtonMsa.addEventListener("click", onClickSigninMsa, { passive: true });
 </script>

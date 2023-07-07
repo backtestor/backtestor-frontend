@@ -1,7 +1,7 @@
 {
   "name": "backtestor",
 
-  "image": "mcr.microsoft.com/devcontainers/javascript-node",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:latest",
 
   "hostRequirements": {
     "cpus": 2,
@@ -37,9 +37,16 @@
   },
 
   "forwardPorts": [3001],
+  "portsAttributes": {
+    "3001": {
+      "label": "Backtestor Frontend",
+      "onAutoForward": "notify"
+    }
+  },
+
   "postCreateCommand": "npm install -g npm-check-updates && npm update -g && npm install",
 
-  // "postAttachCommand": "npm run dev",
+  "postAttachCommand": "npm run dev",
 
   // Set `remoteUser` to `root` to connect as root instead.
   // More info: https://aka.ms/vscode-remote/containers/non-root.
