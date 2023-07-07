@@ -1,0 +1,46 @@
+{
+  "name": "backtestor",
+
+  "image": "mcr.microsoft.com/devcontainers/javascript-node",
+
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "32gb"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/npm-package:1": {}
+  },
+
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    },
+    "vscode": {
+      "extensions": [
+        "astro-build.astro-vscode",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "stylelint.vscode-stylelint",
+        "jock.svg",
+        "bradlc.vscode-tailwindcss",
+        "dotjoshjohnson.xml",
+        "github.copilot",
+        "github.copilot-chat",
+        "fabiospampinato.vscode-optimize-images",
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
+
+  "forwardPorts": [3001],
+  "postCreateCommand": "npm install -g npm-check-updates && npm update -g && npm install",
+
+  // "postAttachCommand": "npm run dev",
+
+  // Set `remoteUser` to `root` to connect as root instead.
+  // More info: https://aka.ms/vscode-remote/containers/non-root.
+  "remoteUser": "node"
+}

@@ -43,15 +43,15 @@ const { language } = i18next;
 
   // Elements Update
   const updateAuthElements = function updateAuthElements(): void {
-    // Intended.
+    const isAuth = isAuthenticated();
+
+    signInButton.classList.toggle("hidden", isAuth);
+    profileMenu.classList.toggle("hidden", !isAuth);
   };
 
   // View Update
   const initView = function initView(): void {
     // Intended.
-    const isAuth = isAuthenticated();
-    signInButton.classList.toggle("hidden", isAuth);
-    profileMenu.classList.toggle("hidden", !isAuth);
   };
 
   // State Update
