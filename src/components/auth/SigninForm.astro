@@ -8,23 +8,26 @@ import { localizePath } from "astro-i18next";
 changeLanguage("en");
 ---
 
+<!-- Signin Form Component -->
 <header class="flex flex-col items-center justify-center">
   <a href={addTrailingSlash(localizePath("/"))} title={t("pages.index.tooltip")}>
     <PSvg name="bt" svgClass="h-40" />
   </a>
   <h1>
-    <Trans i18nKey="components.auth.signin.header">
+    <Trans i18nKey="components.auth.signin-form.header">
       Sign in to <span class="philosopher">Backtestor</span>
     </Trans>
   </h1>
-  <button class="btn btn-outline" id="signin-button-msa" type="button">{t("components.auth.signin.signin-msa")}</button>
+  <button class="btn btn-outline" id="signin-button-msa" type="button"
+    >{t("components.auth.signin-form.signin-msa")}</button
+  >
 </header>
 
 <script>
   import { appSessionStore } from "@src/services/app/appStore";
-import { msaAuth } from "@src/services/app/ip";
-import { defineAuthCodeRequest } from "@src/services/ip";
-import { OIDC_SCOPES } from "@src/services/ip/types";
+  import { msaAuth } from "@src/services/app/ip";
+  import { defineAuthCodeRequest } from "@src/services/ip";
+  import { OIDC_SCOPES } from "@src/services/ip/types";
 
   const signInButton = document.getElementById("signin-button-msa") as HTMLElement;
 

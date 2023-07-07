@@ -34,7 +34,7 @@ const ContentType = {
 
 type ContentType = (typeof ContentType)[keyof typeof ContentType];
 
-const getCurrentUTCTimestamp = (): string => {
+const getCurrentUTCTimestamp = function getCurrentUTCTimestamp(): string {
   const now = new Date();
   // Format: "YYYY-MM-DD HH:MM:SS"
   const [utcString] = now.toISOString().replace("T", " ").split(".");

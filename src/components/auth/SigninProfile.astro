@@ -8,13 +8,13 @@ import i18next, { t } from "i18next";
 const { language } = i18next;
 ---
 
-<!-- Auth Component -->
+<!-- Signin Profile Component -->
 <a
-  class="btn btn-outline"
-  id="sign-in-button"
+  class="btn btn-outline hidden"
+  id="signin-button"
   type="button"
   href=`${addTrailingSlash(localizePath("/signin", language))}?return=${addTrailingSlash(Astro.url.pathname)}`
-  >{t("components.auth.sign-in")}</a
+  >{t("components.auth.signin-profile.signin")}</a
 >
 <PMenu>
   <button
@@ -30,16 +30,16 @@ const { language } = i18next;
   </button>
   <div slot="menu-content" role="menu" class="bg-base-200 ltr:right-0 rtl:left-0" aria-labelledby="profile-menu">
     <ul>
-      <li><a role="menuitem" href="/">Item 1</a></li>
-      <li><a role="menuitem" href="/">Item 2</a></li>
+      <li><a role="menuitem" href="/">{t("components.auth.signin-profile.signout")}</a></li>
     </ul>
   </div>
 </PMenu>
 
 <script>
-  import { IpLocalStore, ipLocalStore } from "@src/services/ip/ipStore";
+  import { isAuthenticated } from "@src/services/app/auth";
 
-  const headerComponent = "headerComponent";
+  const signInButton = document.getElementById("signin-button") as HTMLElement;
+  const profileMenu = document.getElementById("profile-menu") as HTMLElement;
 
   // Elements Update
   const updateAuthElements = function updateAuthElements(): void {
@@ -49,31 +49,16 @@ const { language } = i18next;
   // View Update
   const initView = function initView(): void {
     // Intended.
-  };
-
-  const updateLoginView = function updateLoginView(newKey: string): void {
-    console.log(`updateLoginView: ${newKey}`);
+    const isAuth = isAuthenticated();
+    signInButton.classList.toggle("hidden", isAuth);
+    profileMenu.classList.toggle("hidden", !isAuth);
   };
 
   // State Update
 
   // Events
-  const onChangeIpLocalStore = function onChangeIpLocalStore(
-    key: keyof IpLocalStore,
-    value: IpLocalStore[keyof IpLocalStore] | undefined,
-    source?: string,
-  ): void {
-    if (source === headerComponent || typeof value === "undefined") return;
-
-    if (key === "debugDoNotRedirectAfterSigninCallback") {
-      const newValue: string = value.toString();
-      updateLoginView(newValue);
-    }
-  };
 
   // Init
   initView();
   updateAuthElements();
-
-  ipLocalStore.listen(onChangeIpLocalStore);
 </script>

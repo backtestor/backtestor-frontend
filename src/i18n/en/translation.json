@@ -6,7 +6,7 @@
   },
   "components": {
     "auth": {
-      "signin": {
+      "signin-form": {
         "header": "Sign in to <0>$t(app.title-short)</0>",
         "signin-msa": "Sign in with Microsoft"
       },
@@ -15,7 +15,10 @@
         "authentication-succeed": "Authentication succeed!",
         "authentication-failed": "Authentication failed!"
       },
-      "sign-in": "Sign In"
+      "signin-profile": {
+        "signin": "Sign in",
+        "signout": "Sign out"
+      }
     },
     "header": {
       "navigation-target": "Site",
