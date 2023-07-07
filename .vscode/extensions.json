@@ -1,16 +1,18 @@
 {
   "recommendations": [
-        "astro-build.astro-vscode",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "stylelint.vscode-stylelint",
-        "jock.svg",
-        "bradlc.vscode-tailwindcss",
-        "dotjoshjohnson.xml",
-        "github.copilot",
-        "github.copilot-chat",
-        "fabiospampinato.vscode-optimize-images",
-        "github.vscode-pull-request-github",
-        "github.vscode-github-actions"
-    ]
+    "astro-build.astro-vscode",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "dotjoshjohnson.xml",
+    "esbenp.prettier-vscode",
+    "fabiospampinato.vscode-optimize-images",
+    "github.copilot",
+    "github.copilot-chat",
+    "github.copilot-labs",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "jock.svg",
+    "ms-edgedevtools.vscode-edge-devtools",
+    "stylelint.vscode-stylelint"
+  ]
 }

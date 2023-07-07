@@ -20,17 +20,18 @@
     "vscode": {
       "extensions": [
         "astro-build.astro-vscode",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "stylelint.vscode-stylelint",
-        "jock.svg",
         "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint",
         "dotjoshjohnson.xml",
+        "esbenp.prettier-vscode",
+        "fabiospampinato.vscode-optimize-images",
         "github.copilot",
         "github.copilot-chat",
-        "fabiospampinato.vscode-optimize-images",
+        "github.copilot-labs",
+        "github.vscode-github-actions",
         "github.vscode-pull-request-github",
-        "github.vscode-github-actions"
+        "jock.svg",
+        "stylelint.vscode-stylelint"
       ]
     }
   },
