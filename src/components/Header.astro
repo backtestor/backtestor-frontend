@@ -3,7 +3,7 @@ import PSvg from "@src/components/generic/PSvg.astro";
 import { addTrailingSlash } from "@src/i18n";
 import { localizePath } from "astro-i18next";
 import { t } from "i18next";
-import Auth from "./auth/SigninProfile.astro";
+import SigninProfile from "./auth/SigninProfile.astro";
 ---
 
 <!-- Header -->
@@ -17,6 +17,6 @@ import Auth from "./auth/SigninProfile.astro";
     </div>
   </div>
   <div class="flex flex-none">
-    <Auth />
+    <SigninProfile />
   </div>
 </nav>

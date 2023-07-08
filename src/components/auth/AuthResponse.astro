@@ -1,5 +1,4 @@
 ---
-import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -7,7 +6,6 @@ changeLanguage("en");
 
 <!-- Auth Response Component -->
 <header class="flex flex-col items-center justify-center">
-  <LogoLinkToHomepage />
   <h1 id="signing-in">{t("components.auth.auth-response.signing-in")}</h1>
   <h1 id="signin-succeed" hidden>{t("components.auth.auth-response.signin-succeed")}</h1>
   <h1 id="signin-failed" hidden>{t("components.auth.auth-response.signin-failed")}</h1>

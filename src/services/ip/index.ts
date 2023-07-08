@@ -51,10 +51,8 @@ export interface AuthOptions {
   authority: string;
   clientId: string;
   redirectUri: string;
-  postLogoutRedirectUri: string;
   authorizationEndpoint: string;
   tokenEndpoint: string;
-  endSessionEndpoint: string;
 }
 
 export interface Auth {
@@ -69,25 +67,19 @@ export abstract class BaseAuth implements Auth {
 
   redirectUri: string;
 
-  postLogoutRedirectUri: string;
-
   authority: string;
 
   authorizationEndpoint: string;
 
   tokenEndpoint: string;
 
-  endSessionEndpoint: string;
-
   constructor(options: AuthOptions) {
     this.logger = options.logger;
     this.clientId = options.clientId;
     this.redirectUri = options.redirectUri;
-    this.postLogoutRedirectUri = options.postLogoutRedirectUri;
     this.authority = options.authority;
     this.authorizationEndpoint = options.authorizationEndpoint;
     this.tokenEndpoint = options.tokenEndpoint;
-    this.endSessionEndpoint = options.endSessionEndpoint;
   }
 
   abstract getAuthCodeUrl(request: InitializedAuthCodeRequest): string;

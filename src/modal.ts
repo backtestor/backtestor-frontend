@@ -25,7 +25,7 @@ const getPotentiallyFocusableElements = function getPotentiallyFocusableElements
    * - Includes `<area>`, which is missing (perhaps they meant area instead
    *   of link?).
    */
-  const potentiallyFocusable = document.querySelectorAll(
+  const potentiallyFocusable: NodeListOf<Element> = document.querySelectorAll(
     [
       "a[href]",
       "area[href]",
@@ -41,18 +41,18 @@ const getPotentiallyFocusableElements = function getPotentiallyFocusableElements
     ].join(","),
   );
 
-  const arr = Array.from(potentiallyFocusable);
+  const arr: Element[] = Array.from(potentiallyFocusable);
   return arr;
 };
 
 const makeNonFocusable = function makeNonFocusable(element: Element): void {
-  const tabIndex = element.getAttribute("tabindex") ?? "0";
+  const tabIndex: string = element.getAttribute("tabindex") ?? "0";
   element.setAttribute(SAVED_TAB_INDEX, tabIndex);
   element.setAttribute("tabindex", "-1");
 };
 
 const makeFocusable = function makeFocusable(element: Element): void {
-  const tabIndex = element.getAttribute(SAVED_TAB_INDEX) ?? "0";
+  const tabIndex: string = element.getAttribute(SAVED_TAB_INDEX) ?? "0";
   element.setAttribute("tabindex", tabIndex);
   element.removeAttribute(SAVED_TAB_INDEX);
 };
@@ -68,14 +68,14 @@ const makeFocusable = function makeFocusable(element: Element): void {
  * assumed that a backdrop Element blocking clicks is present.
  */
 export const setModalAsOpen = function setModalAsOpen(element: Element): void {
-  const focusableElements = getPotentiallyFocusableElements();
+  const focusableElements: Element[] = getPotentiallyFocusableElements();
 
   /*
    * Get the elements that are internally focusable, and have been made
    * non-focusable; we want to unhide these.
    */
-  const focusableInternalElements = focusableElements.filter(
-    (e): boolean => element.contains(e) && e.hasAttribute(SAVED_TAB_INDEX),
+  const focusableInternalElements: Element[] = focusableElements.filter(
+    (e: Element): boolean => element.contains(e) && e.hasAttribute(SAVED_TAB_INDEX),
   );
 
   /*
@@ -83,7 +83,7 @@ export const setModalAsOpen = function setModalAsOpen(element: Element): void {
    * non-focusable; we want to hide these.
    */
   const focusableExternalElements = focusableElements.filter(
-    (e): boolean => !element.contains(e) && !e.hasAttribute(SAVED_TAB_INDEX),
+    (e: Element): boolean => !element.contains(e) && !e.hasAttribute(SAVED_TAB_INDEX),
   );
 
   // Make everything outside of the modal non-focusable via tab.
@@ -106,7 +106,7 @@ export const setModalAsOpen = function setModalAsOpen(element: Element): void {
  * currently open modal.
  */
 export const setModalAsClosed = function setModalAsClosed(): void {
-  const next = modalEntryStack.pop();
+  const next: ModalEntry | undefined = modalEntryStack.pop();
   if (!next) return;
   const { focusableExternalElements, focusableInternalElements } = next;
 

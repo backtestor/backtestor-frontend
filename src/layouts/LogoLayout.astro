@@ -1,6 +1,6 @@
 ---
 import "@src/assets/styles/main.css";
-import Header from "@src/components/Header.astro";
+import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
 import type { Graph, Thing, WithContext } from "schema-dts";
 import EmptyLayout from "./EmptyLayout.astro";
 
@@ -16,7 +16,7 @@ export interface Props {
 const { title, description, noindex, nofollow, requiresAuth, jsonLd }: Props = Astro.props;
 ---
 
-<!-- Base Layout -->
+<!-- Logo Layout -->
 <EmptyLayout
   title={title}
   description={description}
@@ -25,6 +25,6 @@ const { title, description, noindex, nofollow, requiresAuth, jsonLd }: Props = A
   requiresAuth={requiresAuth}
   jsonLd={jsonLd}
 >
-  <Header />
+  <LogoLinkToHomepage />
   <slot />
 </EmptyLayout>

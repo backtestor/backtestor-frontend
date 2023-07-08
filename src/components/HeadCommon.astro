@@ -4,13 +4,14 @@ import { AstroI18next, localizeUrl } from "astro-i18next";
 import i18next, { t } from "i18next";
 
 export interface Props {
-  title?: string | null | undefined;
-  description?: string | null | undefined;
-  noindex?: boolean | undefined;
-  nofollow?: boolean | undefined;
+  title: string;
+  description: string;
+  noindex: boolean;
+  nofollow: boolean;
+  requiresAuth: boolean;
 }
 
-const { title, description, noindex, nofollow }: Props = Astro.props;
+const { title, description, noindex, nofollow, requiresAuth }: Props = Astro.props;
 
 const canonicalUrl = new URL(addTrailingSlash(Astro.url.pathname), Astro.site);
 const ogImageUrl = new URL("/og-image.png", Astro.site);
@@ -35,18 +36,18 @@ const { defaultLocale } = AstroI18next.config;
 <meta name="robots" content={`${noindex ? "noindex" : "index"}, ${nofollow ? "nofollow" : "follow"}`} />
 <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
 
-<title>{title ?? t("app.title")}</title>
-<meta name="description" content={description ?? t("app.description")} />
+<title>{title}</title>
+<meta name="description" content={description} />
 <meta name="application-name" content={t("app.title-short")} />
 <meta name="application-description" content={t("app.description")} />
 <meta name="keywords" content="???" />
 
-<meta property="og:title" content={title ?? t("app.title")} />
+<meta property="og:title" content={title} />
 <meta property="og:type" content="website" />
-<meta property="og:description" content={description ?? t("app.description")} />
+<meta property="og:description" content={description} />
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:image" content={ogImageUrl} />
-<meta property="og:image:alt" content={description ?? t("app.description")} />
+<meta property="og:image:alt" content={description} />
 <meta property="og:site_name" content={t("app.title")} />
 <meta property="og:locale" content={language} />
 {
@@ -58,10 +59,10 @@ const { defaultLocale } = AstroI18next.config;
 }
 
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content={title ?? t("app.title")} />
-<meta name="twitter:description" content={description ?? t("app.description")} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
 <meta property="twitter:image" content={twitterImageUrl} />
-<meta property="twitter:image:alt" content={description ?? t("app.description")} />
+<meta property="twitter:image:alt" content={description} />
 
 <meta name="msapplication-TileColor" content="#1A1A1A" />
 <meta name="msapplication-TileImage" content="/favicon-144x144.png" />
@@ -105,5 +106,7 @@ const { defaultLocale } = AstroI18next.config;
 <link rel="me" type="text/html" href="https://github.com/backtestor/" />
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Philosopher" />
+
+<meta name="requires-auth" content=`${requiresAuth.toString()}` />
 
 <script src="@src/runtime.ts"></script>

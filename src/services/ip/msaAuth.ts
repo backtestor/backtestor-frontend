@@ -78,10 +78,8 @@ export const defineMsaAuthOptions = function defineMsaAuthOptions(logger: Logger
     authority: import.meta.env.PUBLIC_MSA_AUTHORITY,
     clientId: import.meta.env.PUBLIC_MSA_CLIENT_ID,
     redirectUri: import.meta.env.PUBLIC_MSA_REDIRECT_URI,
-    postLogoutRedirectUri: import.meta.env.PUBLIC_MSA_POST_LOGOUT_REDIRECT_URI,
     authorizationEndpoint: import.meta.env.PUBLIC_MSA_AUTHORIZATION_ENDPOINT,
     tokenEndpoint: import.meta.env.PUBLIC_MSA_TOKEN_ENDPOINT,
-    endSessionEndpoint: import.meta.env.PUBLIC_MSA_END_SESSION_ENDPOINT,
   };
   return options;
 };

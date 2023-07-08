@@ -1,6 +1,6 @@
 ---
 import AuthResponse from "@src/components/auth/AuthResponse.astro";
-import EmptyLayout from "@src/layouts/EmptyLayout.astro";
+import LogoLayout from "@src/layouts/LogoLayout.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -9,6 +9,6 @@ const title = t("pages.auth-response.title");
 const description = t("pages.auth-response.description");
 ---
 
-<EmptyLayout title={title} description={description}>
+<LogoLayout title={title} description={description} noindex={true} nofollow={true} requiresAuth={false} jsonLd={null}>
   <AuthResponse />
-</EmptyLayout>;
+</LogoLayout>;

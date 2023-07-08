@@ -29,5 +29,10 @@ export const addTrailingSlash = function addTrailingSlash(path: string): string 
 };
 
 export const capitalizeFirstLetter = function capitalizeFirstLetter(string: string, locale: string): string {
-  return string.replace(/^\p{CWU}/u, (char) => char.toLocaleUpperCase(locale));
+  return string.replace(/^\p{CWU}/u, (char: string): string => char.toLocaleUpperCase(locale));
+};
+
+export const getLanguageFromPath = function getLanguageFromPath(pathname: string): string | null {
+  const langCodeMatch: RegExpMatchArray | null = pathname.match(/\/(?<temp1>[a-z]{2}-?[a-z]{0,2})\//u);
+  return langCodeMatch ? langCodeMatch[1] ?? null : null;
 };

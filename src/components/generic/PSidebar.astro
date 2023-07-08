@@ -40,29 +40,29 @@ const { id, side, className }: Props = Astro.props;
 
   // Elements Update
   const updateSidebarElement = function updateSidebarElement(sidebar: Element): void {
-    const newState = sidebar.hasAttribute("open");
+    const newState: boolean = sidebar.hasAttribute("open");
 
     newState ? setModalAsOpen(sidebar) : setModalAsClosed();
 
-    const sidebarMask = document.getElementById(`${sidebar.id}-mask`);
+    const sidebarMask: HTMLElement | null = document.getElementById(`${sidebar.id}-mask`);
     if (sidebarMask) sidebarMask.toggleAttribute("open", newState);
 
     newState
-      ? setTimeout(() => document.addEventListener("mousedown", onClickSidebarDocument, { passive: true }), 100)
+      ? setTimeout((): void => document.addEventListener("mousedown", onClickSidebarDocument, { passive: true }), 100)
       : document.removeEventListener("mousedown", onClickSidebarDocument);
     expandedSidebar = newState ? sidebar : null;
   };
 
   // Model Update
   const toggleSidebarState = function toggleSidebarState(sidebar: Element): void {
-    const newState = !sidebar.hasAttribute("open");
+    const newState: boolean = !sidebar.hasAttribute("open");
 
     sidebar.toggleAttribute("open", newState);
   };
 
   // Observers
   const onMutation = function onMutation(mutationList: MutationRecord[]): void {
-    const mutationRecord = mutationList[0];
+    const mutationRecord: MutationRecord | undefined = mutationList[0];
     if (!mutationRecord) return;
 
     const sidebar = mutationRecord.target as Element;
@@ -81,8 +81,8 @@ const { id, side, className }: Props = Astro.props;
 
   // Init
   const observer = new MutationObserver(onMutation);
-  const sidebars = document.querySelectorAll("[data-p-sidebar]");
-  sidebars.forEach((sidebar): void => {
+  const sidebars: NodeListOf<Element> = document.querySelectorAll("[data-p-sidebar]");
+  sidebars.forEach((sidebar: Element): void => {
     observer.observe(sidebar, {
       attributes: true,
       attributeFilter: ["open"],

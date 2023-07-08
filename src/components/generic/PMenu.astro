@@ -47,24 +47,24 @@ const menuContentHtml = new XMLSerializer().serializeToString(div).replace(xmlns
 
   // Elements Update
   const updateMenuElement = function updateMenuElement(menuItem: Element): void {
-    const newState = menuItem.hasAttribute("open");
+    const newState: boolean = menuItem.hasAttribute("open");
 
     newState ? setModalAsOpen(menuItem) : setModalAsClosed();
 
-    const button = menuItem.firstElementChild;
+    const button: Element | null = menuItem.firstElementChild;
     if (button) button.setAttribute("aria-expanded", String(newState));
 
-    const menuContent = button?.nextElementSibling;
+    const menuContent: Element | null | undefined = button?.nextElementSibling;
     if (menuContent) {
       menuContent.setAttribute("aria-modal", String(newState));
       menuContent.toggleAttribute("open", newState);
     }
 
-    const menuMask = document.getElementById(menuItem.id.replace("-menu", "-mask"));
+    const menuMask: HTMLElement | null = document.getElementById(menuItem.id.replace("-menu", "-mask"));
     if (menuMask) menuMask.toggleAttribute("open", newState);
 
     newState
-      ? setTimeout(() => document.addEventListener("mousedown", onClickMenuDocument, { passive: true }), 100)
+      ? setTimeout((): void => document.addEventListener("mousedown", onClickMenuDocument, { passive: true }), 100)
       : document.removeEventListener("mousedown", onClickMenuDocument);
     expandedMenuItem = newState ? menuItem : null;
   };
@@ -73,14 +73,14 @@ const menuContentHtml = new XMLSerializer().serializeToString(div).replace(xmlns
   const toggleMenuState = function toggleMenuState(menuItem: Element | null): void {
     if (!menuItem) return;
 
-    const newState = !menuItem.hasAttribute("open");
+    const newState: boolean = !menuItem.hasAttribute("open");
 
     menuItem.toggleAttribute("open", newState);
   };
 
   // Observers
   const onMutation = function onMutation(mutationList: MutationRecord[]): void {
-    const mutationRecord = mutationList[0];
+    const mutationRecord: MutationRecord | undefined = mutationList[0];
     if (!mutationRecord) return;
 
     const menuItem = mutationRecord.target as Element;
@@ -108,14 +108,14 @@ const menuContentHtml = new XMLSerializer().serializeToString(div).replace(xmlns
 
   // Init
   const observer = new MutationObserver(onMutation);
-  const menuList = document.querySelectorAll("[data-p-menu]");
-  menuList.forEach((menuItem): void => {
+  const menuList: NodeListOf<Element> = document.querySelectorAll("[data-p-menu]");
+  menuList.forEach((menuItem: Element): void => {
     observer.observe(menuItem, {
       attributes: true,
       attributeFilter: ["open"],
     });
 
-    const button = menuItem.firstElementChild;
+    const button: Element | null = menuItem.firstElementChild;
     button?.addEventListener("click", onMenuButtonClick, { passive: true });
   });
 </script>

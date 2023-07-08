@@ -32,7 +32,8 @@ const { language } = i18next;
     <ul>
       <li>
         <a role="menuitem" href={addTrailingSlash(localizePath("/signout", language))}
-          >{t("components.auth.signin-profile.signout")}</a>
+          >{t("components.auth.signin-profile.signout")}</a
+        >
       </li>
     </ul>
   </div>
@@ -46,7 +47,7 @@ const { language } = i18next;
 
   // Elements Update
   const updateAuthElements = function updateAuthElements(): void {
-    const isAuth = isAuthenticated();
+    const isAuth: boolean = isAuthenticated();
 
     signinButton.classList.toggle("hidden", isAuth);
     profileMenu.classList.toggle("hidden", !isAuth);

@@ -14,6 +14,6 @@ export const isAuthenticated = function isAuthenticated(): boolean {
       new Date().getUTCMilliseconds(),
     ),
   );
-  const before = nowUtc < expiresAtUTC;
+  const before: boolean = nowUtc < expiresAtUTC;
   return before;
 };

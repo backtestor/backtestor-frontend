@@ -1,6 +1,6 @@
 ---
 import SigninForm from "@src/components/auth/SigninForm.astro";
-import EmptyLayout from "@src/layouts/EmptyLayout.astro";
+import LogoLayout from "@src/layouts/LogoLayout.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -9,6 +9,6 @@ const title = t("pages.signin.title");
 const description = t("pages.signin.description");
 ---
 
-<EmptyLayout title={title} description={description}>
+<LogoLayout title={title} description={description} noindex={true} nofollow={true} requiresAuth={false} jsonLd={null}>
   <SigninForm />
-</EmptyLayout>
+</LogoLayout>

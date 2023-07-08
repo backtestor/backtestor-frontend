@@ -1,13 +1,11 @@
 ---
-import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
 ---
 
-<!-- Signin Form Component -->
+<!-- Signout Form Component -->
 <header class="flex flex-col items-center justify-center">
-  <LogoLinkToHomepage />
   <h1 id="signing-out">{t("components.auth.signout-form.signing-out")}</h1>
   <h1 id="signgout-succeed" hidden>{t("components.auth.signout-form.signgout-succeed")}</h1>
   <h1 id="signgout-failed" hidden>{t("components.auth.signout-form.signgout-failed")}</h1>
@@ -27,7 +25,9 @@ changeLanguage("en");
   import { defineApiRequest } from "@src/services/api";
   import { ApiResponse } from "@src/services/api/types";
   import { appSessionStore } from "@src/services/app/appStore";
+  import { isAuthenticated } from "@src/services/app/auth";
   import { authApi } from "@src/services/app/authApi";
+  import { signin } from "@src/services/app/ip";
   import { ipLocalStore } from "@src/services/ip/ipStore";
 
   const signingOut = document.getElementById("signing-out") as HTMLElement;
@@ -89,5 +89,9 @@ changeLanguage("en");
   };
 
   // Init
-  await signout();
+  if (isAuthenticated()) {
+    await signout();
+  } else {
+    signin(window.location.pathname);
+  }
 </script>

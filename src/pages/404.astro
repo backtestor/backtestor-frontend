@@ -1,6 +1,5 @@
 ---
-import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
-import EmptyLayout from "@src/layouts/EmptyLayout.astro";
+import LogoLayout from "@src/layouts/LogoLayout.astro";
 import { changeLanguage, t } from "i18next";
 
 changeLanguage("en");
@@ -9,12 +8,11 @@ const title = t("pages.404.title");
 const description = t("pages.404.description");
 ---
 
-<EmptyLayout title={title} description={description}>
+<LogoLayout title={title} description={description} noindex={true} nofollow={true} requiresAuth={false} jsonLd={null}>
   <header class="flex flex-col items-center justify-center">
-    <LogoLinkToHomepage />
     <h1>{t("pages.404.header")}</h1>
   </header>
   <main class="flex flex-col items-center justify-center">
     <div>{t("pages.404.message")}</div>
   </main>
-</EmptyLayout>
+</LogoLayout>

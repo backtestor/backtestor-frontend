@@ -61,47 +61,16 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
       ...getAuthHeaders(),
     };
 
-    try {
-      const response = await fetch(tokenUrl, {
-        method: "POST",
-        headers,
-      });
+    const apiResponse: ApiResponse = await this.httpclient.post<ApiResponse>("logout", tokenUrl, {
+      method: "POST",
+      headers,
+    });
 
-      let apiResponse: ApiResponse = {};
+    if (apiResponse.error) return apiResponse;
 
-      if (response.headers.get("Content-Type")?.includes("application/json"))
-        apiResponse = (await response.json().catch((error): ApiResponse => {
-          const errorResponse = {
-            ...this.parseError("logout request failed", error as Error | null),
-          } as ApiResponse;
-          this.logger.warning(`logout failed: ${JSON.stringify(errorResponse, null, 2)}`);
-          return errorResponse;
-        })) as ApiResponse;
-      else if (response.status < 400)
-        apiResponse = {
-          status: response.status.toString(),
-        };
-      else
-        apiResponse = {
-          ...this.parseError(response.status.toString(), new Error(response.statusText)),
-        };
+    authSessionStore.deleteKey("token");
 
-      if (apiResponse.error) {
-        this.logger.warning(`logout not succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
-        return apiResponse;
-      }
-
-      this.logger.debug(`logout succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
-      authSessionStore.deleteKey("token");
-
-      return apiResponse;
-    } catch (error) {
-      const errorResponse = {
-        ...this.parseError("logout request network error", error as Error | null),
-      } as ApiResponse;
-      this.logger.error(`logout error: ${JSON.stringify(errorResponse, null, 2)}`);
-      return errorResponse;
-    }
+    return apiResponse;
   }
 
   async getToken(request: TokenApiRequest): Promise<ApiResponse> {
@@ -113,40 +82,18 @@ export class AuthApiImpl extends BaseApi implements AuthApi {
     };
     const formString: string = this.getTokenFormString(request);
 
-    try {
-      const response = await fetch(tokenUrl, {
-        method: "POST",
-        headers,
-        body: formString,
-      });
+    const apiResponse: ApiResponse = await this.httpclient.post<ApiResponse>("getToken", tokenUrl, {
+      method: "POST",
+      headers,
+      body: formString,
+    });
 
-      const apiResponse: ApiResponse = (await response.json().catch((error): ApiResponse => {
-        const err = error as Error | null;
-        const errorResponse = {
-          ...this.parseError("getToken request failed", err),
-        } as ApiResponse;
-        this.logger.warning(`getToken failed: ${JSON.stringify(errorResponse, null, 2)}`);
-        return errorResponse;
-      })) as ApiResponse;
+    if (apiResponse.error) return apiResponse;
 
-      if (apiResponse.error) {
-        this.logger.warning(`getToken not succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
-        return apiResponse;
-      }
+    const tokenResult: TokenApiResponse = apiResponse.result as TokenApiResponse;
+    authSessionStore.setKey("token", tokenResult);
 
-      this.logger.debug(`getToken succeeded: ${JSON.stringify(apiResponse, null, 2)}`);
-      const tokenResult: TokenApiResponse = apiResponse.result as TokenApiResponse;
-      authSessionStore.setKey("token", tokenResult);
-
-      return apiResponse;
-    } catch (error) {
-      const err = error as Error | null;
-      const errorResponse = {
-        ...this.parseError("getToken request network error", err),
-      } as ApiResponse;
-      this.logger.error(`getToken error: ${JSON.stringify(errorResponse, null, 2)}`);
-      return errorResponse;
-    }
+    return apiResponse;
   }
 
   getTokenFormString(request: TokenApiRequest): string {

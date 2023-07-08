@@ -1,5 +1,4 @@
 ---
-import LogoLinkToHomepage from "@src/components/LogoLinkToHomepage.astro";
 import { changeLanguage, t } from "i18next";
 import { Trans } from "astro-i18next/components";
 
@@ -8,7 +7,6 @@ changeLanguage("en");
 
 <!-- Signin Form Component -->
 <header class="flex flex-col items-center justify-center">
-  <LogoLinkToHomepage />
   <h1>
     <Trans i18nKey="components.auth.signin-form.header">
       Sign in to <span class="philosopher">Backtestor</span>
@@ -22,26 +20,18 @@ changeLanguage("en");
 </main>
 
 <script>
-  import { appSessionStore } from "@src/services/app/appStore";
-  import { msaAuth } from "@src/services/app/ip";
-  import { defineAuthCodeRequest } from "@src/services/ip";
-  import { OIDC_SCOPES } from "@src/services/ip/types";
+  import { signinMsa } from "@src/services/app/ip";
 
   const signinButtonMsa = document.getElementById("signin-button-msa") as HTMLElement;
 
   const urlParams = new URLSearchParams(window.location.search);
   const returnUrl: string = urlParams.get("return") ?? "/";
 
-  // Functions
-  const signinMsa = function signinMsa(): void {
-    msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, OIDC_SCOPES, appSessionStore.value.sessionId));
-  };
-
   // Events
   const onClickSigninMsa = function onClickSigninMsa(event: Event): void {
     if (!event.currentTarget) return;
 
-    signinMsa();
+    signinMsa(returnUrl);
   };
 
   // Init

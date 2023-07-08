@@ -9,7 +9,7 @@ const title = t("pages.index.title");
 const description = t("pages.index.description");
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} noindex={false} nofollow={false} requiresAuth={false} jsonLd={null}>
   <header class="flex flex-col items-center justify-center">
     <h1>
       <Trans i18nKey="pages.index.header">
