@@ -14,15 +14,28 @@ changeLanguage("en");
   </h1>
 </header>
 <main class="flex flex-col items-center justify-center">
-  <button class="btn btn-outline" id="signin-button-msa" type="button">
+  <button
+    class:list={["btn btn-outline", { hidden: import.meta.env.PUBLIC_MSA_AUTHORITY === "" }]}
+    id="signin-button-msa"
+    type="button"
+  >
     {t("components.auth.signin-form.signin-msa")}
+  </button>
+  <p></p>
+  <button
+    class:list={["btn btn-outline", { hidden: import.meta.env.PUBLIC_FB_AUTHORITY === "" }]}
+    id="signin-button-fb"
+    type="button"
+  >
+    {t("components.auth.signin-form.signin-fb")}
   </button>
 </main>
 
 <script>
-  import { signinMsa } from "@src/services/app/ip";
+  import { signinFb, signinMsa } from "@src/services/app/ip";
 
   const signinButtonMsa = document.getElementById("signin-button-msa") as HTMLElement;
+  const signinButtonFb = document.getElementById("signin-button-fb") as HTMLElement;
 
   const urlParams = new URLSearchParams(window.location.search);
   const returnUrl: string = urlParams.get("return") ?? "/";
@@ -34,6 +47,13 @@ changeLanguage("en");
     signinMsa(returnUrl);
   };
 
+  const onClickSigninFb = function onClickSigninFb(event: Event): void {
+    if (!event.currentTarget) return;
+
+    signinFb(returnUrl);
+  };
+
   // Init
   signinButtonMsa.addEventListener("click", onClickSigninMsa, { passive: true });
+  signinButtonFb.addEventListener("click", onClickSigninFb, { passive: true });
 </script>

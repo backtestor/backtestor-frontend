@@ -10,13 +10,17 @@ export interface Logger {
 export const Scope = {
   OPENID_SCOPE: "openid",
   PROFILE_SCOPE: "profile",
-  OFFLINE_ACCESS_SCOPE: "offline_access",
+  PUBLIC_PROFILE_SCOPE: "public_profile",
   EMAIL_SCOPE: "email",
 };
 
-export const OIDC_DEFAULT_SCOPES: string[] = [Scope.OPENID_SCOPE, Scope.PROFILE_SCOPE];
+export const ResponseType = {
+  CODE: "code",
+  ID_TOKEN: "id_token",
+  TOKEN: "token",
+} as const;
 
-export const OIDC_SCOPES: string[] = [...OIDC_DEFAULT_SCOPES, Scope.EMAIL_SCOPE];
+export type ResponseType = (typeof ResponseType)[keyof typeof ResponseType];
 
 export interface StateObject {
   sessionId: string;

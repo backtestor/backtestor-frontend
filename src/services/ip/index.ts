@@ -9,7 +9,6 @@ import {
   AuthResponse,
   InitializedAuthCodeRequest,
   Logger,
-  OIDC_DEFAULT_SCOPES,
   PkceCodes,
   StateObject,
   TokenKeys,
@@ -108,15 +107,11 @@ export abstract class BaseAuth implements Auth {
   async initializeAuthCodeRequest(request: AuthCodeRequest): Promise<InitializedAuthCodeRequest> {
     this.logger.trace("initializeAuthCodeRequest called");
 
-    const scopeSet = new Set([...request.scope, ...OIDC_DEFAULT_SCOPES]);
-    const scopeArray: string[] = Array.from(scopeSet);
-
     const stateObject: StateObject = this.setState(request);
     const pkceCodes: PkceCodes = await this.generatePkceParams();
 
     const initializedAuthCodeRequest: InitializedAuthCodeRequest = {
       ...request,
-      scope: scopeArray,
       stateObject,
       nonce: generateGuid(),
       pkceCodes,

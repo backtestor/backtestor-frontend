@@ -1,8 +1,8 @@
 import { getLanguageFromPath } from "@src/i18n";
 import { Auth, defineAuthCodeRequest } from "@src/services/ip";
+import { FB_OIDC_SCOPES, defineFbAuth, defineFbAuthOptions } from "@src/services/ip/fbAuth";
 import { ipLocalStore } from "@src/services/ip/ipStore";
-import { defineMsaAuth, defineMsaAuthOptions } from "@src/services/ip/msaAuth";
-import { OIDC_SCOPES } from "@src/services/ip/types";
+import { MSA_OIDC_SCOPES, defineMsaAuth, defineMsaAuthOptions } from "@src/services/ip/msaAuth";
 import { appSessionStore } from "./appStore";
 import { appLoger } from "./logger";
 
@@ -15,8 +15,14 @@ const getSigninUrl = function getSigninUrl(): string {
 
 export const msaAuth: Auth = defineMsaAuth(defineMsaAuthOptions(appLoger));
 
+export const fbAuth: Auth = defineFbAuth(defineFbAuthOptions(appLoger));
+
 export const signinMsa = function signinMsa(returnUrl: string): void {
-  msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, OIDC_SCOPES, appSessionStore.value.sessionId));
+  msaAuth.getAuthCode(defineAuthCodeRequest(returnUrl, MSA_OIDC_SCOPES, appSessionStore.value.sessionId));
+};
+
+export const signinFb = function signinFb(returnUrl: string): void {
+  fbAuth.getAuthCode(defineAuthCodeRequest(returnUrl, FB_OIDC_SCOPES, appSessionStore.value.sessionId));
 };
 
 export const signin = function signin(returnUrl: string): void {

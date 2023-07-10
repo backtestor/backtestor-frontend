@@ -16,7 +16,8 @@
       },
       "signin-form": {
         "header": "Sign in to <0>$t(app.title-short)</0>",
-        "signin-msa": "Sign in with Microsoft"
+        "signin-msa": "Sign in with Microsoft",
+        "signin-fb": "Sign in with Facebook"
       },
       "signin-profile": {
         "signin": "Sign in",
