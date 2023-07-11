@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package utilservice;
+
+option go_package = "internal/proto/utilservice";
+
+service UtilService {
+  rpc Wait(WaitRequest) returns (WaitResponse) {}
+}
+
+message WaitRequest {
+  int32 seconds = 1;
+}
+
+message WaitResponse {
+  string message = 1;
+}
