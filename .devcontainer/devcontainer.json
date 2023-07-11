@@ -44,7 +44,7 @@
     }
   },
 
-  "postCreateCommand": "npm install -g npm-check-updates && npm update -g && npm install",
+  "postCreateCommand": "npm install -g npm-check-updates protoc-gen-ts && npm update -g && npm install",
 
   "postAttachCommand": "npm run dev",
 
