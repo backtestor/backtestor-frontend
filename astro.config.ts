@@ -24,6 +24,8 @@ export default defineConfig({
     port: 3001,
   },
 
+  compressHTML: true,
+
   build: {
     assets: "assets",
   },
@@ -47,9 +49,7 @@ export default defineConfig({
   integrations: [
     astroI18next(),
     tailwind({
-      config: {
-        applyBaseStyles: false,
-      },
+      applyBaseStyles: false,
     }),
     sitemap(sitemapOptions),
     critters(),

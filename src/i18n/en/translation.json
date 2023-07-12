@@ -33,8 +33,7 @@
       }
     },
     "header": {
-      "navigation-target": "Site",
-      "filtering": "Filtering",
+      "stock-screener": "Stock Screener",
       "more-menu": "More",
       "more-menu-items": {
         "about": "About Us",
@@ -56,6 +55,10 @@
     "auth-response": {
       "title": "Authentication Callback",
       "description": "Handle authentication callback for authentication provider integration."
+    },
+    "stock-screener": {
+      "title": "Stock Screening - $t(app.title-short)",
+      "description": "Find the best stocks to trade. Filter stocks by price, volume, volatility, and more."
     },
     "signin": {
       "title": "Sign in to $t(app.title-short)",
